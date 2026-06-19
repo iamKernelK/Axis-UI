@@ -5,7 +5,19 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- دالة السحب الناعم
+-- ==========================================
+-- PREMIUM THEME CONSTANTS
+-- ==========================================
+local THEME_ORANGE = Color3.fromRGB(255, 140, 0)
+local THEME_ORANGE_DARK = Color3.fromRGB(130, 60, 0)
+local THEME_ORANGE_LIGHT = Color3.fromRGB(255, 180, 80)
+local DARK_GLASS_BG = Color3.fromRGB(15, 10, 8)
+
+-- ==========================================
+-- UTILITY FUNCTIONS
+-- ==========================================
+
+-- Smooth Dragging Function
 local function MakeDraggable(dragPart, targetPart)
     local Dragging, DragInput, DragStart, StartPosition
 
@@ -36,51 +48,62 @@ local function MakeDraggable(dragPart, targetPart)
     end)
 end
 
--- أنيميشن لا نهائي للـ UIStroke (من أعلى لأسفل)
-local function ApplyAnimatedStroke(parentObj, color1, color2, thickness)
+-- Premium Animated Stroke (Moving Shine)
+local function ApplyAnimatedStroke(parentObj, thickness, cornerRadius)
     local stroke = Instance.new("UIStroke")
     stroke.Thickness = thickness
-    stroke.Color = Color3.new(1, 1, 1)
+    stroke.Color = Color3.new(1, 1, 1) -- Base white to allow gradient to show pure colors
     stroke.Parent = parentObj
     
     local grad = Instance.new("UIGradient")
     grad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, color1),
-        ColorSequenceKeypoint.new(0.5, color2),
-        ColorSequenceKeypoint.new(1, color1)
+        ColorSequenceKeypoint.new(0, THEME_ORANGE_DARK),
+        ColorSequenceKeypoint.new(0.5, THEME_ORANGE_LIGHT), -- The "Shine"
+        ColorSequenceKeypoint.new(1, THEME_ORANGE_DARK)
     })
-    grad.Rotation = 90
+    grad.Rotation = 45
     grad.Parent = stroke
     
-    grad.Offset = Vector2.new(0, -1)
-    local tween = TweenService:Create(grad, TweenInfo.new(1.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {Offset = Vector2.new(0, 1)})
+    -- Infinite Shimmer Animation
+    grad.Offset = Vector2.new(-1, -1)
+    local tweenInfo = TweenInfo.new(2.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
+    local tween = TweenService:Create(grad, tweenInfo, {Offset = Vector2.new(1, 1)})
     tween:Play()
+    
+    if cornerRadius then
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = cornerRadius
+        corner.Parent = parentObj
+    end
     
     return stroke
 end
 
--- دالة لتطبيق تأثير تدرج لوني خرافي على النصوص
+-- Text Gradient Effect
 local function ApplyTextGradient(textLabel)
     local grad = Instance.new("UIGradient")
     grad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 150, 0)),  -- برتقالي ساطع
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(130, 40, 0))    -- برتقالي/بني داكن
+        ColorSequenceKeypoint.new(0, THEME_ORANGE),
+        ColorSequenceKeypoint.new(1, THEME_ORANGE_DARK)
     })
     grad.Rotation = 0
     grad.Parent = textLabel
 end
 
+-- ==========================================
+-- MAIN UI CONSTRUCTION
+-- ==========================================
+
 function AxisUI.CreateWindow(Options)
     local self = setmetatable({}, AxisUI)
     
     local TitleText = Options.Title or "Axis Future"
-    local DescText = Options.Description or "Ultimate UI"
-    -- استخدام متغير واحد للصورة يطبق على الخلفية والزر العائم
+    local DescText = Options.Description or "Premium UI"
     local ThemeImage = Options.ThemeImage or "rbxassetid://103845371952278" 
     
-    -- 1. ScreenGui
+    -- 1. ScreenGui Setup
     self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = "AxisUI_Future"
+    self.ScreenGui.Name = "AxisUI_Premium"
     self.ScreenGui.ResetOnSpawn = false
     self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
@@ -88,132 +111,134 @@ function AxisUI.CreateWindow(Options)
     if not self.ScreenGui.Parent then pcall(function() self.ScreenGui.Parent = CoreGui end) end
     if not self.ScreenGui.Parent then self.ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") end
 
-    -- 2. MainFrame
+    -- 2. MainFrame (Glassmorphism Style)
     self.MainFrame = Instance.new("Frame")
-    self.MainFrame.Size = UDim2.new(0, 700, 0, 450)
+    self.MainFrame.Size = UDim2.new(0, 750, 0, 480)
     self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    self.MainFrame.BackgroundColor3 = Color3.fromRGB(10, 7, 5)
+    self.MainFrame.BackgroundColor3 = DARK_GLASS_BG
+    self.MainFrame.BackgroundTransparency = 0.25 -- Glass effect
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.ScreenGui
 
-    local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 10)
-    MainCorner.Parent = self.MainFrame
+    ApplyAnimatedStroke(self.MainFrame, 1.5, UDim.new(0, 12))
 
-    -- دمج الصورة كخلفية شفافة للواجهة
-    local BgImage = Instance.new("ImageLabel")
-    BgImage.Size = UDim2.new(1, 0, 1, 0)
-    BgImage.BackgroundTransparency = 1
-    BgImage.Image = ThemeImage
-    BgImage.ImageTransparency = 0.85 -- شفافية قوية لتكون خلفية هادئة
-    BgImage.ScaleType = Enum.ScaleType.Crop
-    BgImage.ZIndex = 0
-    BgImage.Parent = self.MainFrame
+    -- Subtle moving gradient for the background to make it feel alive
+    local bgGradient = Instance.new("UIGradient")
+    bgGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 10, 8)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(25, 15, 5)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 10, 8))
+    })
+    bgGradient.Rotation = 30
+    bgGradient.Parent = self.MainFrame
+    
+    local bgTween = TweenService:Create(bgGradient, TweenInfo.new(5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation = -30})
+    bgTween:Play()
 
-    ApplyAnimatedStroke(self.MainFrame, Color3.fromRGB(255, 120, 0), Color3.fromRGB(50, 10, 0), 1.5)
-
-    -- 3. الزر العائم (مطور لقص الحواف بتأثيرات احترافية)
+    -- 3. Floating Button (Clipped & Stylish)
     self.FloatingBtn = Instance.new("ImageButton")
-    self.FloatingBtn.Name = "FloatingBtn"
     self.FloatingBtn.Size = UDim2.new(0, 55, 0, 55)
-    -- وضعنا AnchorPoint في المنتصف لضمان أن الأنيميشن (التكبير/التصغير) يحدث من المركز
-    self.FloatingBtn.AnchorPoint = Vector2.new(0.5, 0.5) 
-    self.FloatingBtn.Position = UDim2.new(0.5, 0, 0.1, 27) 
-    self.FloatingBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    self.FloatingBtn.Position = UDim2.new(0.5, -27, 0.1, 0)
+    self.FloatingBtn.BackgroundColor3 = DARK_GLASS_BG
     self.FloatingBtn.AutoButtonColor = false
     self.FloatingBtn.ClipsDescendants = true
     self.FloatingBtn.Visible = false
     self.FloatingBtn.Parent = self.ScreenGui
 
-    local FloatCorner = Instance.new("UICorner")
-    FloatCorner.CornerRadius = UDim.new(0, 12) -- زاوية دائرية احترافية
-    FloatCorner.Parent = self.FloatingBtn
+    ApplyAnimatedStroke(self.FloatingBtn, 2, UDim.new(0, 12))
 
-    -- الأيقونة (الصورة)
     local FloatIcon = Instance.new("ImageLabel")
     FloatIcon.Name = "FloatIcon"
-    FloatIcon.Size = UDim2.new(1, 0, 1, 0) -- تملأ الزر بالكامل
-    FloatIcon.Position = UDim2.new(0, 0, 0, 0)
+    FloatIcon.Size = UDim2.new(1, 0, 1, 0)
     FloatIcon.BackgroundTransparency = 1
     FloatIcon.Image = ThemeImage
-    FloatIcon.ScaleType = Enum.ScaleType.Crop -- تملأ المساحة بدون تشويه
+    FloatIcon.ScaleType = Enum.ScaleType.Crop
     FloatIcon.Parent = self.FloatingBtn
 
-    -- السر لقص حواف الصورة فعلياً: إعطاء الصورة UICorner خاص بها مطابق للأب
-    local IconCorner = Instance.new("UICorner")
-    IconCorner.CornerRadius = UDim.new(0, 12)
-    IconCorner.Parent = FloatIcon
-
-    ApplyAnimatedStroke(self.FloatingBtn, Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), 1.5)
-
-    -- تأثيرات احترافية (Hover & Pressed) للهواتف والحاسوب
-    self.FloatingBtn.MouseEnter:Connect(function()
-        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 58, 0, 58)}):Play()
-        TweenService:Create(FloatIcon, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(200, 200, 200)}):Play()
-    end)
-
-    self.FloatingBtn.MouseLeave:Connect(function()
-        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 55, 0, 55)}):Play()
-        TweenService:Create(FloatIcon, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-    end)
-
-    self.FloatingBtn.MouseButton1Down:Connect(function()
-        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(0, 48, 0, 48)}):Play()
-    end)
-
-    self.FloatingBtn.MouseButton1Up:Connect(function()
-        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 58, 0, 58)}):Play()
-    end)
-
     MakeDraggable(self.FloatingBtn, self.FloatingBtn)
 
-    MakeDraggable(self.FloatingBtn, self.FloatingBtn)
-
-    -- 4. TopBar & Gradient Text
+    -- 4. TopBar (Expanded for Prominent Search)
     self.TopBar = Instance.new("Frame")
-    self.TopBar.Size = UDim2.new(1, 0, 0, 50)
+    self.TopBar.Size = UDim2.new(1, 0, 0, 65)
     self.TopBar.BackgroundTransparency = 1
     self.TopBar.Parent = self.MainFrame
     MakeDraggable(self.TopBar, self.MainFrame)
 
     self.TitleLabel = Instance.new("TextLabel")
     self.TitleLabel.Size = UDim2.new(0, 200, 0, 22)
-    self.TitleLabel.Position = UDim2.new(0, 20, 0, 8)
+    self.TitleLabel.Position = UDim2.new(0, 20, 0, 12)
     self.TitleLabel.BackgroundTransparency = 1
     self.TitleLabel.Text = TitleText
-    self.TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- أبيض حتى يظهر الـ Gradient
+    self.TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     self.TitleLabel.Font = Enum.Font.GothamBlack
-    self.TitleLabel.TextSize = 16
+    self.TitleLabel.TextSize = 18
     self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.TitleLabel.Parent = self.TopBar
-    ApplyTextGradient(self.TitleLabel) -- تطبيق التدرج اللوني الخرافي
+    ApplyTextGradient(self.TitleLabel)
 
     self.DescLabel = Instance.new("TextLabel")
     self.DescLabel.Size = UDim2.new(0, 200, 0, 15)
-    self.DescLabel.Position = UDim2.new(0, 20, 0, 30)
+    self.DescLabel.Position = UDim2.new(0, 20, 0, 36)
     self.DescLabel.BackgroundTransparency = 1
     self.DescLabel.Text = DescText
-    self.DescLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    self.DescLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
     self.DescLabel.Font = Enum.Font.GothamMedium
     self.DescLabel.TextSize = 12
     self.DescLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.DescLabel.Parent = self.TopBar
-    ApplyTextGradient(self.DescLabel) -- تطبيق التدرج اللوني الخرافي
+    ApplyTextGradient(self.DescLabel)
 
-    -- أزرار TopBar
+    -- 5. Search Bar (Relocated & Restyled)
+    self.SearchFrame = Instance.new("Frame")
+    self.SearchFrame.Size = UDim2.new(0.45, 0, 0, 36) -- Prominent width
+    self.SearchFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    self.SearchFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    self.SearchFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
+    self.SearchFrame.BackgroundTransparency = 0.5
+    self.SearchFrame.Parent = self.TopBar
+
+    ApplyAnimatedStroke(self.SearchFrame, 1, UDim.new(0, 6))
+
+    self.SearchIcon = Instance.new("ImageLabel")
+    self.SearchIcon.Size = UDim2.new(0, 18, 0, 18)
+    self.SearchIcon.Position = UDim2.new(0, 12, 0.5, -9)
+    self.SearchIcon.BackgroundTransparency = 1
+    self.SearchIcon.Image = "rbxassetid://118685771787843"
+    self.SearchIcon.ImageColor3 = THEME_ORANGE
+    self.SearchIcon.Parent = self.SearchFrame
+
+    self.SearchBox = Instance.new("TextBox")
+    self.SearchBox.Size = UDim2.new(1, -45, 1, 0)
+    self.SearchBox.Position = UDim2.new(0, 38, 0, 0)
+    self.SearchBox.BackgroundTransparency = 1
+    self.SearchBox.Text = ""
+    self.SearchBox.PlaceholderText = "Search elements..."
+    self.SearchBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    self.SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    self.SearchBox.Font = Enum.Font.Gotham
+    self.SearchBox.TextSize = 14
+    self.SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+    self.SearchBox.Parent = self.SearchFrame
+
+    -- Window Controls (Minimize, Maximize, Close)
     local function CreateTopIconBtn(name, iconId, posOffset)
         local btn = Instance.new("ImageButton")
         btn.Name = name
-        btn.Size = UDim2.new(0, 20, 0, 20)
-        btn.Position = UDim2.new(1, posOffset, 0, 15)
+        btn.Size = UDim2.new(0, 22, 0, 22)
+        btn.Position = UDim2.new(1, posOffset, 0.5, -11)
         btn.BackgroundTransparency = 1
         btn.Image = iconId
-        btn.ImageColor3 = Color3.fromRGB(150, 150, 150)
+        btn.ImageColor3 = Color3.fromRGB(180, 180, 180)
         btn.Parent = self.TopBar
-        btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(255, 150, 0)}):Play() end)
-        btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(150, 150, 150)}):Play() end)
+        
+        btn.MouseEnter:Connect(function() 
+            TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = THEME_ORANGE}):Play() 
+        end)
+        btn.MouseLeave:Connect(function() 
+            TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(180, 180, 180)}):Play() 
+        end)
         return btn
     end
 
@@ -221,10 +246,10 @@ function AxisUI.CreateWindow(Options)
     self.MaxBtn = CreateTopIconBtn("Maximize", "rbxassetid://103845371952278", -75)
     self.MinBtn = CreateTopIconBtn("Minimize", "rbxassetid://78357418744409", -110)
 
-    -- الأنيميشن والبرمجة للأزرار
+    -- Window Control Logic
     local isMaximized = false
-    local normalSize = UDim2.new(0, 700, 0, 450)
-    local maxSize = UDim2.new(0, 850, 0, 550)
+    local normalSize = UDim2.new(0, 750, 0, 480)
+    local maxSize = UDim2.new(0, 900, 0, 600)
 
     self.MaxBtn.MouseButton1Click:Connect(function()
         isMaximized = not isMaximized
@@ -246,6 +271,7 @@ function AxisUI.CreateWindow(Options)
             dragStartPos = input.Position
         end
     end)
+    
     self.FloatingBtn.InputEnded:Connect(function(input)
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and dragStartPos then
             if (input.Position - dragStartPos).Magnitude < 10 then
@@ -262,71 +288,64 @@ function AxisUI.CreateWindow(Options)
         self.ScreenGui:Destroy()
     end)
 
-    -- 5. الخطوط الفاصلة وحاويات المستقبل
+    -- 6. Dividers & Menu Structures
     local TopDivider = Instance.new("Frame")
     TopDivider.Size = UDim2.new(1, 0, 0, 1)
-    TopDivider.Position = UDim2.new(0, 0, 0, 50)
-    TopDivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TopDivider.BackgroundTransparency = 0.9
+    TopDivider.Position = UDim2.new(0, 0, 0, 65)
+    TopDivider.BackgroundColor3 = THEME_ORANGE
+    TopDivider.BackgroundTransparency = 0.5
     TopDivider.BorderSizePixel = 0
     TopDivider.Parent = self.MainFrame
 
     local SidebarDivider = Instance.new("Frame")
-    SidebarDivider.Size = UDim2.new(0, 1, 1, -50)
-    SidebarDivider.Position = UDim2.new(0, 180, 0, 50)
-    SidebarDivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    SidebarDivider.BackgroundTransparency = 0.9
+    SidebarDivider.Size = UDim2.new(0, 1, 1, -65)
+    SidebarDivider.Position = UDim2.new(0, 180, 0, 65)
+    SidebarDivider.BackgroundColor3 = THEME_ORANGE
+    SidebarDivider.BackgroundTransparency = 0.7
     SidebarDivider.BorderSizePixel = 0
     SidebarDivider.Parent = self.MainFrame
 
-    self.TabsMenu = Instance.new("Frame")
+    -- Tabs Menu
+    self.TabsMenu = Instance.new("ScrollingFrame")
     self.TabsMenu.Name = "TabsMenu"
-    self.TabsMenu.Size = UDim2.new(0, 180, 1, -50)
-    self.TabsMenu.Position = UDim2.new(0, 0, 0, 50)
+    self.TabsMenu.Size = UDim2.new(0, 180, 1, -65)
+    self.TabsMenu.Position = UDim2.new(0, 0, 0, 65)
     self.TabsMenu.BackgroundTransparency = 1
+    self.TabsMenu.ScrollBarThickness = 0
     self.TabsMenu.Parent = self.MainFrame
 
-    self.ElementsMenu = Instance.new("Frame")
+    local TabsLayout = Instance.new("UIListLayout")
+    TabsLayout.Parent = self.TabsMenu
+    TabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    TabsLayout.Padding = UDim.new(0, 5)
+
+    local TabsPadding = Instance.new("UIPadding")
+    TabsPadding.Parent = self.TabsMenu
+    TabsPadding.PaddingTop = UDim.new(0, 15)
+    TabsPadding.PaddingLeft = UDim.new(0, 10)
+    TabsPadding.PaddingRight = UDim.new(0, 10)
+
+    -- Elements Menu
+    self.ElementsMenu = Instance.new("ScrollingFrame")
     self.ElementsMenu.Name = "ElementsMenu"
-    self.ElementsMenu.Size = UDim2.new(1, -181, 1, -50)
-    self.ElementsMenu.Position = UDim2.new(0, 181, 0, 50)
+    self.ElementsMenu.Size = UDim2.new(1, -181, 1, -65)
+    self.ElementsMenu.Position = UDim2.new(0, 181, 0, 65)
     self.ElementsMenu.BackgroundTransparency = 1
+    self.ElementsMenu.ScrollBarThickness = 2
+    self.ElementsMenu.ScrollBarImageColor3 = THEME_ORANGE
     self.ElementsMenu.Parent = self.MainFrame
 
-    -- 6. مربع البحث
-    self.SearchFrame = Instance.new("Frame")
-    self.SearchFrame.Size = UDim2.new(1, -30, 0, 32)
-    self.SearchFrame.Position = UDim2.new(0, 15, 0, 15)
-    self.SearchFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    self.SearchFrame.BackgroundTransparency = 0.6
-    self.SearchFrame.Parent = self.TabsMenu
+    local ElementsLayout = Instance.new("UIListLayout")
+    ElementsLayout.Parent = self.ElementsMenu
+    ElementsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ElementsLayout.Padding = UDim.new(0, 8) -- Clean spacing for created elements
 
-    local SearchCorner = Instance.new("UICorner")
-    SearchCorner.CornerRadius = UDim.new(0, 6)
-    SearchCorner.Parent = self.SearchFrame
-
-    ApplyAnimatedStroke(self.SearchFrame, Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 140, 0), 1)
-
-    self.SearchIcon = Instance.new("ImageLabel")
-    self.SearchIcon.Size = UDim2.new(0, 16, 0, 16)
-    self.SearchIcon.Position = UDim2.new(0, 10, 0.5, -8)
-    self.SearchIcon.BackgroundTransparency = 1
-    self.SearchIcon.Image = "rbxassetid://118685771787843"
-    self.SearchIcon.ImageColor3 = Color3.fromRGB(150, 150, 150)
-    self.SearchIcon.Parent = self.SearchFrame
-
-    self.SearchBox = Instance.new("TextBox")
-    self.SearchBox.Size = UDim2.new(1, -40, 1, 0)
-    self.SearchBox.Position = UDim2.new(0, 32, 0, 0)
-    self.SearchBox.BackgroundTransparency = 1
-    self.SearchBox.Text = ""
-    self.SearchBox.PlaceholderText = "Search..."
-    self.SearchBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-    self.SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    self.SearchBox.Font = Enum.Font.Gotham
-    self.SearchBox.TextSize = 13
-    self.SearchBox.TextXAlignment = Enum.TextXAlignment.Left
-    self.SearchBox.Parent = self.SearchFrame
+    local ElementsPadding = Instance.new("UIPadding")
+    ElementsPadding.Parent = self.ElementsMenu
+    ElementsPadding.PaddingTop = UDim.new(0, 15)
+    ElementsPadding.PaddingBottom = UDim.new(0, 15)
+    ElementsPadding.PaddingLeft = UDim.new(0, 15)
+    ElementsPadding.PaddingRight = UDim.new(0, 15)
 
     return self
 end

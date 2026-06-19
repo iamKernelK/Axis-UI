@@ -5,7 +5,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- دالة مساعدة للسحب الناعم
+-- دالة السحب الناعم
 local function MakeDraggable(dragPart, targetPart)
     local Dragging, DragInput, DragStart, StartPosition
 
@@ -16,9 +16,7 @@ local function MakeDraggable(dragPart, targetPart)
             StartPosition = targetPart.Position
 
             input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    Dragging = false
-                end
+                if input.UserInputState == Enum.UserInputState.End then Dragging = false end
             end)
         end
     end)
@@ -38,11 +36,11 @@ local function MakeDraggable(dragPart, targetPart)
     end)
 end
 
--- دالة خارقة لعمل أنيميشن UIStroke من فوق لتحت بلا نهاية
+-- أنيميشن لا نهائي للـ UIStroke (من أعلى لأسفل)
 local function ApplyAnimatedStroke(parentObj, color1, color2, thickness)
     local stroke = Instance.new("UIStroke")
     stroke.Thickness = thickness
-    stroke.Color = Color3.new(1, 1, 1) -- اللون الأساسي أبيض حتى يظهر الجراديانت
+    stroke.Color = Color3.new(1, 1, 1)
     stroke.Parent = parentObj
     
     local grad = Instance.new("UIGradient")
@@ -51,10 +49,9 @@ local function ApplyAnimatedStroke(parentObj, color1, color2, thickness)
         ColorSequenceKeypoint.new(0.5, color2),
         ColorSequenceKeypoint.new(1, color1)
     })
-    grad.Rotation = 90 -- عشان يكون من فوق لتحت
+    grad.Rotation = 90
     grad.Parent = stroke
     
-    -- تشغيل الأنيميشن بلا نهاية
     grad.Offset = Vector2.new(0, -1)
     local tween = TweenService:Create(grad, TweenInfo.new(1.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {Offset = Vector2.new(0, 1)})
     tween:Play()
@@ -62,17 +59,28 @@ local function ApplyAnimatedStroke(parentObj, color1, color2, thickness)
     return stroke
 end
 
+-- دالة لتطبيق تأثير تدرج لوني خرافي على النصوص
+local function ApplyTextGradient(textLabel)
+    local grad = Instance.new("UIGradient")
+    grad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 150, 0)),  -- برتقالي ساطع
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(130, 40, 0))    -- برتقالي/بني داكن
+    })
+    grad.Rotation = 0
+    grad.Parent = textLabel
+end
+
 function AxisUI.CreateWindow(Options)
     local self = setmetatable({}, AxisUI)
     
-    local TitleText = Options.Title or "FluentModded dev"
-    local DescText = Options.Description or "Advanced User"
-    local FloatIconID = Options.Icon or "rbxassetid://103845371952278"
-    local BgMenuID = Options.Menu or ""
+    local TitleText = Options.Title or "Axis Future"
+    local DescText = Options.Description or "Ultimate UI"
+    -- استخدام متغير واحد للصورة يطبق على الخلفية والزر العائم
+    local ThemeImage = Options.ThemeImage or "rbxassetid://103845371952278" 
     
     -- 1. ScreenGui
     self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = "AxisFluent_Ultimate"
+    self.ScreenGui.Name = "AxisUI_Future"
     self.ScreenGui.ResetOnSpawn = false
     self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
@@ -80,57 +88,39 @@ function AxisUI.CreateWindow(Options)
     if not self.ScreenGui.Parent then pcall(function() self.ScreenGui.Parent = CoreGui end) end
     if not self.ScreenGui.Parent then self.ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") end
 
-    -- 2. الواجهة الرئيسية (MainFrame) مع AnchorPoint للتكبير/التصغير من المنتصف
+    -- 2. MainFrame
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Size = UDim2.new(0, 700, 0, 450)
     self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    self.MainFrame.BackgroundColor3 = Color3.fromRGB(15, 10, 5)
+    self.MainFrame.BackgroundColor3 = Color3.fromRGB(10, 7, 5)
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.ClipsDescendants = true
     self.MainFrame.Parent = self.ScreenGui
 
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 8)
+    MainCorner.CornerRadius = UDim.new(0, 10)
     MainCorner.Parent = self.MainFrame
 
-    -- صورة الواجهة (Menu) شفافة
-    if BgMenuID ~= "" then
-        local BgImage = Instance.new("ImageLabel")
-        BgImage.Size = UDim2.new(1, 0, 1, 0)
-        BgImage.BackgroundTransparency = 1
-        BgImage.Image = BgMenuID
-        BgImage.ImageTransparency = 0.5
-        BgImage.ScaleType = Enum.ScaleType.Crop
-        BgImage.ZIndex = 0
-        BgImage.Parent = self.MainFrame
-    end
+    -- دمج الصورة كخلفية شفافة للواجهة
+    local BgImage = Instance.new("ImageLabel")
+    BgImage.Size = UDim2.new(1, 0, 1, 0)
+    BgImage.BackgroundTransparency = 1
+    BgImage.Image = ThemeImage
+    BgImage.ImageTransparency = 0.85 -- شفافية قوية لتكون خلفية هادئة
+    BgImage.ScaleType = Enum.ScaleType.Crop
+    BgImage.ZIndex = 0
+    BgImage.Parent = self.MainFrame
 
-    -- UIGradient للخلفية (Blackhole + Orange)
-    local MainGradient = Instance.new("UIGradient")
-    MainGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(5, 5, 5)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 15, 0)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 8, 8))
-    })
-    MainGradient.Rotation = 45
-    MainGradient.Parent = self.MainFrame
-    spawn(function()
-        local t = TweenService:Create(MainGradient, TweenInfo.new(6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Offset = Vector2.new(0.3, 0.3)})
-        MainGradient.Offset = Vector2.new(-0.3, -0.3)
-        t:Play()
-    end)
-
-    -- UIStroke متحرك للواجهة (سُمك 1.5)
     ApplyAnimatedStroke(self.MainFrame, Color3.fromRGB(255, 120, 0), Color3.fromRGB(50, 10, 0), 1.5)
 
-    -- 3. الزر العائم (أكبر قليلاً 55x55)
+    -- 3. الزر العائم (المربع الذي يحتوي الصورة بالكامل)
     self.FloatingBtn = Instance.new("ImageButton")
     self.FloatingBtn.Size = UDim2.new(0, 55, 0, 55)
     self.FloatingBtn.Position = UDim2.new(0.5, -27, 0.1, 0)
-    self.FloatingBtn.BackgroundColor3 = Color3.fromRGB(20, 12, 5)
-    self.FloatingBtn.BackgroundTransparency = 0.1
+    self.FloatingBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     self.FloatingBtn.AutoButtonColor = false
+    self.FloatingBtn.ClipsDescendants = true -- لقص الصورة لتناسب الزوايا الدائرية
     self.FloatingBtn.Visible = false
     self.FloatingBtn.Parent = self.ScreenGui
 
@@ -138,19 +128,19 @@ function AxisUI.CreateWindow(Options)
     FloatCorner.CornerRadius = UDim.new(0, 12)
     FloatCorner.Parent = self.FloatingBtn
 
-    -- UIStroke متحرك للزر العائم
     ApplyAnimatedStroke(self.FloatingBtn, Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), 1.5)
     
     local FloatIcon = Instance.new("ImageLabel")
-    FloatIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
-    FloatIcon.Position = UDim2.new(0.2, 0, 0.2, 0)
+    FloatIcon.Size = UDim2.new(1, 0, 1, 0) -- يملأ الزر بالكامل
+    FloatIcon.Position = UDim2.new(0, 0, 0, 0)
     FloatIcon.BackgroundTransparency = 1
-    FloatIcon.Image = FloatIconID
+    FloatIcon.Image = ThemeImage
+    FloatIcon.ScaleType = Enum.ScaleType.Crop
     FloatIcon.Parent = self.FloatingBtn
 
     MakeDraggable(self.FloatingBtn, self.FloatingBtn)
 
-    -- 4. TopBar
+    -- 4. TopBar & Gradient Text
     self.TopBar = Instance.new("Frame")
     self.TopBar.Size = UDim2.new(1, 0, 0, 50)
     self.TopBar.BackgroundTransparency = 1
@@ -158,26 +148,28 @@ function AxisUI.CreateWindow(Options)
     MakeDraggable(self.TopBar, self.MainFrame)
 
     self.TitleLabel = Instance.new("TextLabel")
-    self.TitleLabel.Size = UDim2.new(0, 200, 0, 20)
-    self.TitleLabel.Position = UDim2.new(0, 20, 0, 10)
+    self.TitleLabel.Size = UDim2.new(0, 200, 0, 22)
+    self.TitleLabel.Position = UDim2.new(0, 20, 0, 8)
     self.TitleLabel.BackgroundTransparency = 1
     self.TitleLabel.Text = TitleText
-    self.TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    self.TitleLabel.Font = Enum.Font.GothamBold
-    self.TitleLabel.TextSize = 14
+    self.TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- أبيض حتى يظهر الـ Gradient
+    self.TitleLabel.Font = Enum.Font.GothamBlack
+    self.TitleLabel.TextSize = 16
     self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.TitleLabel.Parent = self.TopBar
+    ApplyTextGradient(self.TitleLabel) -- تطبيق التدرج اللوني الخرافي
 
     self.DescLabel = Instance.new("TextLabel")
     self.DescLabel.Size = UDim2.new(0, 200, 0, 15)
-    self.DescLabel.Position = UDim2.new(0, 20, 0, 28)
+    self.DescLabel.Position = UDim2.new(0, 20, 0, 30)
     self.DescLabel.BackgroundTransparency = 1
     self.DescLabel.Text = DescText
-    self.DescLabel.TextColor3 = Color3.fromRGB(200, 100, 0)
+    self.DescLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     self.DescLabel.Font = Enum.Font.GothamMedium
-    self.DescLabel.TextSize = 11
+    self.DescLabel.TextSize = 12
     self.DescLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.DescLabel.Parent = self.TopBar
+    ApplyTextGradient(self.DescLabel) -- تطبيق التدرج اللوني الخرافي
 
     -- أزرار TopBar
     local function CreateTopIconBtn(name, iconId, posOffset)
@@ -189,7 +181,7 @@ function AxisUI.CreateWindow(Options)
         btn.Image = iconId
         btn.ImageColor3 = Color3.fromRGB(150, 150, 150)
         btn.Parent = self.TopBar
-        btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(255, 255, 255)}):Play() end)
+        btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(255, 150, 0)}):Play() end)
         btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(150, 150, 150)}):Play() end)
         return btn
     end
@@ -198,7 +190,7 @@ function AxisUI.CreateWindow(Options)
     self.MaxBtn = CreateTopIconBtn("Maximize", "rbxassetid://103845371952278", -75)
     self.MinBtn = CreateTopIconBtn("Minimize", "rbxassetid://78357418744409", -110)
 
-    -- برمجة تفاعلات الأزرار: التكبير/التصغير
+    -- الأنيميشن والبرمجة للأزرار
     local isMaximized = false
     local normalSize = UDim2.new(0, 700, 0, 450)
     local maxSize = UDim2.new(0, 850, 0, 550)
@@ -210,7 +202,6 @@ function AxisUI.CreateWindow(Options)
     end)
 
     self.MinBtn.MouseButton1Click:Connect(function()
-        -- أنيميشن اختفاء (يصغر وتزيد شفافيته)
         local t = TweenService:Create(self.MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
         t:Play()
         t.Completed:Wait()
@@ -218,7 +209,6 @@ function AxisUI.CreateWindow(Options)
         self.FloatingBtn.Visible = true
     end)
 
-    -- فتح القائمة من الزر العائم (بأنيميشن مذهل)
     local dragStartPos = nil
     self.FloatingBtn.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -227,7 +217,7 @@ function AxisUI.CreateWindow(Options)
     end)
     self.FloatingBtn.InputEnded:Connect(function(input)
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and dragStartPos then
-            if (input.Position - dragStartPos).Magnitude < 10 then -- إذا كانت ضغطة وليست سحب
+            if (input.Position - dragStartPos).Magnitude < 10 then
                 self.FloatingBtn.Visible = false
                 self.MainFrame.Visible = true
                 self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
@@ -241,12 +231,12 @@ function AxisUI.CreateWindow(Options)
         self.ScreenGui:Destroy()
     end)
 
-    -- الخطوط الفاصلة
+    -- 5. الخطوط الفاصلة وحاويات المستقبل
     local TopDivider = Instance.new("Frame")
     TopDivider.Size = UDim2.new(1, 0, 0, 1)
     TopDivider.Position = UDim2.new(0, 0, 0, 50)
     TopDivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    TopDivider.BackgroundTransparency = 0.85
+    TopDivider.BackgroundTransparency = 0.9
     TopDivider.BorderSizePixel = 0
     TopDivider.Parent = self.MainFrame
 
@@ -254,11 +244,10 @@ function AxisUI.CreateWindow(Options)
     SidebarDivider.Size = UDim2.new(0, 1, 1, -50)
     SidebarDivider.Position = UDim2.new(0, 180, 0, 50)
     SidebarDivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    SidebarDivider.BackgroundTransparency = 0.85
+    SidebarDivider.BackgroundTransparency = 0.9
     SidebarDivider.BorderSizePixel = 0
     SidebarDivider.Parent = self.MainFrame
 
-    -- 5. إعداد حاويات المستقبل
     self.TabsMenu = Instance.new("Frame")
     self.TabsMenu.Name = "TabsMenu"
     self.TabsMenu.Size = UDim2.new(0, 180, 1, -50)
@@ -285,7 +274,6 @@ function AxisUI.CreateWindow(Options)
     SearchCorner.CornerRadius = UDim.new(0, 6)
     SearchCorner.Parent = self.SearchFrame
 
-    -- UIStroke متحرك لمربع البحث
     ApplyAnimatedStroke(self.SearchFrame, Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 140, 0), 1)
 
     self.SearchIcon = Instance.new("ImageLabel")

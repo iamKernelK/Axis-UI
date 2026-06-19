@@ -155,7 +155,7 @@ function AxisUI.CreateWindow(Options)
     FloatIcon.BackgroundTransparency = 1
     FloatIcon.Image = ThemeImage
     FloatIcon.ScaleType = Enum.ScaleType.Crop
-    FloatIcon.Parent = self.FloatingBtn
+    FloatIcon.Parent = self.FloatingBtn.ClipsDescendants = true
 
     MakeDraggable(self.FloatingBtn, self.FloatingBtn)
 

@@ -114,13 +114,16 @@ function AxisUI.CreateWindow(Options)
 
     ApplyAnimatedStroke(self.MainFrame, Color3.fromRGB(255, 120, 0), Color3.fromRGB(50, 10, 0), 1.5)
 
-        -- 3. الزر العائم (مطور لقص الحواف)
+    -- 3. الزر العائم (مطور لقص الحواف بتأثيرات احترافية)
     self.FloatingBtn = Instance.new("ImageButton")
+    self.FloatingBtn.Name = "FloatingBtn"
     self.FloatingBtn.Size = UDim2.new(0, 55, 0, 55)
-    self.FloatingBtn.Position = UDim2.new(0.5, -27, 0.1, 0)
+    -- وضعنا AnchorPoint في المنتصف لضمان أن الأنيميشن (التكبير/التصغير) يحدث من المركز
+    self.FloatingBtn.AnchorPoint = Vector2.new(0.5, 0.5) 
+    self.FloatingBtn.Position = UDim2.new(0.5, 0, 0.1, 27) 
     self.FloatingBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     self.FloatingBtn.AutoButtonColor = false
-    self.FloatingBtn.ClipsDescendants = true -- هذا هو السطر السحري لقص الصورة
+    self.FloatingBtn.ClipsDescendants = true
     self.FloatingBtn.Visible = false
     self.FloatingBtn.Parent = self.ScreenGui
 
@@ -132,21 +135,39 @@ function AxisUI.CreateWindow(Options)
     local FloatIcon = Instance.new("ImageLabel")
     FloatIcon.Name = "FloatIcon"
     FloatIcon.Size = UDim2.new(1, 0, 1, 0) -- تملأ الزر بالكامل
-    FloatIcon.BackgroundTransparency = 1
-    FloatIcon.Image = ThemeImage -- الصورة التي اخترتها
-    FloatIcon.ScaleType = Enum.ScaleType.Crop -- لضبط أبعاد الصورة داخل الزر
-    FloatIcon.Parent = self.FloatingBtn
-
-
-    ApplyAnimatedStroke(self.FloatingBtn, Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), 1.5)
-    
-    local FloatIcon = Instance.new("ImageLabel")
-    FloatIcon.Size = UDim2.new(1, 0, 1, 0) -- يملأ الزر بالكامل
     FloatIcon.Position = UDim2.new(0, 0, 0, 0)
     FloatIcon.BackgroundTransparency = 1
     FloatIcon.Image = ThemeImage
-    FloatIcon.ScaleType = Enum.ScaleType.Crop
+    FloatIcon.ScaleType = Enum.ScaleType.Crop -- تملأ المساحة بدون تشويه
     FloatIcon.Parent = self.FloatingBtn
+
+    -- السر لقص حواف الصورة فعلياً: إعطاء الصورة UICorner خاص بها مطابق للأب
+    local IconCorner = Instance.new("UICorner")
+    IconCorner.CornerRadius = UDim.new(0, 12)
+    IconCorner.Parent = FloatIcon
+
+    ApplyAnimatedStroke(self.FloatingBtn, Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), 1.5)
+
+    -- تأثيرات احترافية (Hover & Pressed) للهواتف والحاسوب
+    self.FloatingBtn.MouseEnter:Connect(function()
+        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 58, 0, 58)}):Play()
+        TweenService:Create(FloatIcon, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(200, 200, 200)}):Play()
+    end)
+
+    self.FloatingBtn.MouseLeave:Connect(function()
+        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 55, 0, 55)}):Play()
+        TweenService:Create(FloatIcon, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+    end)
+
+    self.FloatingBtn.MouseButton1Down:Connect(function()
+        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(0, 48, 0, 48)}):Play()
+    end)
+
+    self.FloatingBtn.MouseButton1Up:Connect(function()
+        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 58, 0, 58)}):Play()
+    end)
+
+    MakeDraggable(self.FloatingBtn, self.FloatingBtn)
 
     MakeDraggable(self.FloatingBtn, self.FloatingBtn)
 

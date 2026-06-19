@@ -6,7 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
 -- ==========================================
--- PREMIUM THEME CONSTANTS
+-- ثوابت الألوان (Premium Orange Theme)
 -- ==========================================
 local THEME_ORANGE = Color3.fromRGB(255, 140, 0)
 local THEME_ORANGE_DARK = Color3.fromRGB(130, 60, 0)
@@ -14,10 +14,10 @@ local THEME_ORANGE_LIGHT = Color3.fromRGB(255, 180, 80)
 local DARK_GLASS_BG = Color3.fromRGB(15, 10, 8)
 
 -- ==========================================
--- UTILITY FUNCTIONS
+-- دوال المساعدة (Utility Functions)
 -- ==========================================
 
--- دالة السحب الناعم للواجهة
+-- دالة السحب الناعم
 local function MakeDraggable(dragPart, targetPart)
     local Dragging, DragInput, DragStart, StartPosition
 
@@ -48,7 +48,7 @@ local function MakeDraggable(dragPart, targetPart)
     end)
 end
 
--- الإطار المضيء والمتحرك (تأثير اللمعان)
+-- الإطار المضيء والمتحرك
 local function ApplyAnimatedStroke(parentObj, thickness, cornerRadius)
     local stroke = Instance.new("UIStroke")
     stroke.Thickness = thickness
@@ -78,19 +78,19 @@ local function ApplyAnimatedStroke(parentObj, thickness, cornerRadius)
     return stroke
 end
 
--- تأثير التدرج اللوني للنصوص
+-- تدرج لوني للنصوص
 local function ApplyTextGradient(textLabel)
     local grad = Instance.new("UIGradient")
     grad.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, THEME_ORANGE),
-        ColorSequenceKeypoint.new(1, THEME_ORANGE_DARK)
+        ColorSequenceKeypoint.new(1, THEME_ORANGE_LIGHT)
     })
     grad.Rotation = 0
     grad.Parent = textLabel
 end
 
 -- ==========================================
--- MAIN UI CONSTRUCTION
+-- بناء الواجهة الأساسية (Main UI Construction)
 -- ==========================================
 
 function AxisUI.CreateWindow(Options)
@@ -100,7 +100,7 @@ function AxisUI.CreateWindow(Options)
     local DescText = Options.Description or "Premium UI"
     local ThemeImage = Options.ThemeImage or "rbxassetid://103845371952278" 
     
-    -- 1. إعداد الـ ScreenGui
+    -- 1. ScreenGui
     self.ScreenGui = Instance.new("ScreenGui")
     self.ScreenGui.Name = "AxisUI_Premium"
     self.ScreenGui.ResetOnSpawn = false
@@ -110,57 +110,91 @@ function AxisUI.CreateWindow(Options)
     if not self.ScreenGui.Parent then pcall(function() self.ScreenGui.Parent = CoreGui end) end
     if not self.ScreenGui.Parent then self.ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") end
 
-    -- 2. النافذة الرئيسية (تأثير الزجاج - Glassmorphism)
+    -- 2. النافذة الرئيسية (بتأثير تدرج الخلفية الاحترافي)
     self.MainFrame = Instance.new("Frame")
-    self.MainFrame.Size = UDim2.new(0, 0, 0, 0) -- نبدأ بحجم صفر لعمل أنيميشن الدخول
+    self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
     self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    self.MainFrame.BackgroundColor3 = DARK_GLASS_BG
-    self.MainFrame.BackgroundTransparency = 0.25
+    self.MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- يجب أن يكون أبيض لكي يعمل التدرج اللوني بشكل نقي
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.ClipsDescendants = true
-    self.MainFrame.Active = true -- منع النقرات من النفاذ للعبة
+    self.MainFrame.Active = true 
     self.MainFrame.Parent = self.ScreenGui
 
     ApplyAnimatedStroke(self.MainFrame, 1.5, UDim.new(0, 12))
 
-    -- تدرج لوني خفيف ومتحرك لخلفية النافذة
-    local bgGradient = Instance.new("UIGradient")
-    bgGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 10, 8)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(25, 15, 5)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 10, 8))
+    -- تدرج الخلفية (يحاكي واجهة Fluent ولكن بلون برتقالي داكن وزجاجي)
+    local MainBgGradient = Instance.new("UIGradient")
+    MainBgGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 5, 5)),      -- أسود داكن جداً
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(25, 12, 5)),   -- برتقالي/بني خافت في المنتصف
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 8, 5))       -- أسود مائل للبرتقالي
     })
-    bgGradient.Rotation = 30
-    bgGradient.Parent = self.MainFrame
-    
-    local bgTween = TweenService:Create(bgGradient, TweenInfo.new(5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation = -30})
-    bgTween:Play()
+    MainBgGradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.1),
+        NumberSequenceKeypoint.new(1, 0.25) -- تأثير زجاجي (Glassmorphism)
+    })
+    MainBgGradient.Rotation = 45
+    MainBgGradient.Parent = self.MainFrame
 
-    -- 3. الزر العائم (بعد التصغير)
+    -- حركة بطيئة لتدرج الخلفية ليعطي شعور بالحياة
+    TweenService:Create(MainBgGradient, TweenInfo.new(6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation = -45}):Play()
+
+    -- 3. الزر العائم (الاحترافي مع الأنيميشن وقص الحواف الدقيق)
     self.FloatingBtn = Instance.new("ImageButton")
+    self.FloatingBtn.Name = "FloatingBtn"
     self.FloatingBtn.Size = UDim2.new(0, 55, 0, 55)
-    self.FloatingBtn.Position = UDim2.new(0.5, -27, 0.1, 0)
-    self.FloatingBtn.BackgroundColor3 = DARK_GLASS_BG
+    self.FloatingBtn.AnchorPoint = Vector2.new(0.5, 0.5) 
+    self.FloatingBtn.Position = UDim2.new(0.5, 0, 0.1, 27) 
+    self.FloatingBtn.BackgroundColor3 = Color3.fromRGB(10, 5, 5)
     self.FloatingBtn.AutoButtonColor = false
-    self.FloatingBtn.ClipsDescendants = true -- إصلاح: منع الصورة من الخروج عن الزر
     self.FloatingBtn.Visible = false
     self.FloatingBtn.Active = true
     self.FloatingBtn.Parent = self.ScreenGui
 
-    ApplyAnimatedStroke(self.FloatingBtn, 2, UDim.new(0, 12))
+    local FloatCorner = Instance.new("UICorner")
+    FloatCorner.CornerRadius = UDim.new(0, 12)
+    FloatCorner.Parent = self.FloatingBtn
 
+    -- الأيقونة (مع حل مشكلة خروج الحواف)
     local FloatIcon = Instance.new("ImageLabel")
     FloatIcon.Name = "FloatIcon"
     FloatIcon.Size = UDim2.new(1, 0, 1, 0)
+    FloatIcon.Position = UDim2.new(0, 0, 0, 0)
     FloatIcon.BackgroundTransparency = 1
     FloatIcon.Image = ThemeImage
     FloatIcon.ScaleType = Enum.ScaleType.Crop
-    FloatIcon.Parent = self.FloatingBtn -- تم إصلاح الخطأ البرمجي هنا
+    FloatIcon.Parent = self.FloatingBtn
+
+    -- إضافة الزاوية الدائرية للصورة نفسها لضمان عدم بروزها أبداً
+    local IconCorner = Instance.new("UICorner")
+    IconCorner.CornerRadius = UDim.new(0, 12)
+    IconCorner.Parent = FloatIcon
+
+    ApplyAnimatedStroke(self.FloatingBtn, 2, UDim.new(0, 12))
+
+    -- تأثيرات الزر العائم (Hover & Pressed)
+    self.FloatingBtn.MouseEnter:Connect(function()
+        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 60, 0, 60)}):Play()
+        TweenService:Create(FloatIcon, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(220, 220, 220)}):Play()
+    end)
+
+    self.FloatingBtn.MouseLeave:Connect(function()
+        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 55, 0, 55)}):Play()
+        TweenService:Create(FloatIcon, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+    end)
+
+    self.FloatingBtn.MouseButton1Down:Connect(function()
+        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(0, 48, 0, 48)}):Play()
+    end)
+
+    self.FloatingBtn.MouseButton1Up:Connect(function()
+        TweenService:Create(self.FloatingBtn, TweenInfo.new(0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 60, 0, 60)}):Play()
+    end)
 
     MakeDraggable(self.FloatingBtn, self.FloatingBtn)
 
-    -- 4. الشريط العلوي (TopBar)
+    -- 4. الشريط العلوي
     self.TopBar = Instance.new("Frame")
     self.TopBar.Size = UDim2.new(1, 0, 0, 65)
     self.TopBar.BackgroundTransparency = 1
@@ -184,20 +218,19 @@ function AxisUI.CreateWindow(Options)
     self.DescLabel.Position = UDim2.new(0, 20, 0, 36)
     self.DescLabel.BackgroundTransparency = 1
     self.DescLabel.Text = DescText
-    self.DescLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    self.DescLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
     self.DescLabel.Font = Enum.Font.GothamMedium
     self.DescLabel.TextSize = 12
     self.DescLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.DescLabel.Parent = self.TopBar
-    ApplyTextGradient(self.DescLabel)
 
-    -- 5. شريط البحث الفاخر (موقع بارز)
+    -- 5. شريط البحث
     self.SearchFrame = Instance.new("Frame")
     self.SearchFrame.Size = UDim2.new(0.45, 0, 0, 36)
     self.SearchFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     self.SearchFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     self.SearchFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
-    self.SearchFrame.BackgroundTransparency = 0.5
+    self.SearchFrame.BackgroundTransparency = 0.6
     self.SearchFrame.Parent = self.TopBar
 
     ApplyAnimatedStroke(self.SearchFrame, 1, UDim.new(0, 6))
@@ -223,7 +256,7 @@ function AxisUI.CreateWindow(Options)
     self.SearchBox.TextXAlignment = Enum.TextXAlignment.Left
     self.SearchBox.Parent = self.SearchFrame
 
-    -- أزرار التحكم بالنافذة (إغلاق، تكبير، تصغير)
+    -- أزرار التحكم
     local function CreateTopIconBtn(name, iconId, posOffset)
         local btn = Instance.new("ImageButton")
         btn.Name = name
@@ -234,12 +267,8 @@ function AxisUI.CreateWindow(Options)
         btn.ImageColor3 = Color3.fromRGB(180, 180, 180)
         btn.Parent = self.TopBar
         
-        btn.MouseEnter:Connect(function() 
-            TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = THEME_ORANGE}):Play() 
-        end)
-        btn.MouseLeave:Connect(function() 
-            TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(180, 180, 180)}):Play() 
-        end)
+        btn.MouseEnter:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = THEME_ORANGE}):Play() end)
+        btn.MouseLeave:Connect(function() TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(180, 180, 180)}):Play() end)
         return btn
     end
 
@@ -247,7 +276,7 @@ function AxisUI.CreateWindow(Options)
     self.MaxBtn = CreateTopIconBtn("Maximize", "rbxassetid://103845371952278", -75)
     self.MinBtn = CreateTopIconBtn("Minimize", "rbxassetid://78357418744409", -110)
 
-    -- منطق التحكم بالنافذة
+    -- منطق النوافذ
     local isMaximized = false
     local normalSize = UDim2.new(0, 750, 0, 480)
     local maxSize = UDim2.new(0, 900, 0, 600)
@@ -266,6 +295,7 @@ function AxisUI.CreateWindow(Options)
         self.FloatingBtn.Visible = true
     end)
 
+    -- منطق فتح النافذة من الزر العائم (مع تجاهل السحب)
     local dragStartPos = nil
     self.FloatingBtn.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -275,7 +305,7 @@ function AxisUI.CreateWindow(Options)
     
     self.FloatingBtn.InputEnded:Connect(function(input)
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and dragStartPos then
-            if (input.Position - dragStartPos).Magnitude < 10 then
+            if (input.Position - dragStartPos).Magnitude < 10 then -- إذا لم يتم سحب الزر بل النقر عليه
                 self.FloatingBtn.Visible = false
                 self.MainFrame.Visible = true
                 self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
@@ -286,14 +316,13 @@ function AxisUI.CreateWindow(Options)
     end)
 
     self.CloseBtn.MouseButton1Click:Connect(function()
-        -- أنيميشن اختفاء قبل الإغلاق
         local t = TweenService:Create(self.MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
         t:Play()
         t.Completed:Wait()
         self.ScreenGui:Destroy()
     end)
 
-    -- 6. الفواصل وقوائم الواجهة
+    -- 6. الفواصل والحاويات
     local TopDivider = Instance.new("Frame")
     TopDivider.Size = UDim2.new(1, 0, 0, 1)
     TopDivider.Position = UDim2.new(0, 0, 0, 65)
@@ -310,7 +339,6 @@ function AxisUI.CreateWindow(Options)
     SidebarDivider.BorderSizePixel = 0
     SidebarDivider.Parent = self.MainFrame
 
-    -- حاوية التبويبات (تمت إضافة ClipsDescendants)
     self.TabsMenu = Instance.new("ScrollingFrame")
     self.TabsMenu.Name = "TabsMenu"
     self.TabsMenu.Size = UDim2.new(0, 180, 1, -65)
@@ -331,7 +359,6 @@ function AxisUI.CreateWindow(Options)
     TabsPadding.PaddingLeft = UDim.new(0, 10)
     TabsPadding.PaddingRight = UDim.new(0, 10)
 
-    -- حاوية العناصر (تمت إضافة ClipsDescendants)
     self.ElementsMenu = Instance.new("ScrollingFrame")
     self.ElementsMenu.Name = "ElementsMenu"
     self.ElementsMenu.Size = UDim2.new(1, -181, 1, -65)
@@ -354,7 +381,7 @@ function AxisUI.CreateWindow(Options)
     ElementsPadding.PaddingLeft = UDim.new(0, 15)
     ElementsPadding.PaddingRight = UDim.new(0, 15)
 
-    -- أنيميشن الدخول الأولي للواجهة
+    -- أنيميشن الدخول
     TweenService:Create(self.MainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = normalSize}):Play()
 
     return self

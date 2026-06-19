@@ -17,7 +17,7 @@ local DARK_GLASS_BG = Color3.fromRGB(15, 10, 8)
 -- UTILITY FUNCTIONS
 -- ==========================================
 
--- Smooth Dragging Function
+-- دالة السحب الناعم للواجهة
 local function MakeDraggable(dragPart, targetPart)
     local Dragging, DragInput, DragStart, StartPosition
 
@@ -48,23 +48,22 @@ local function MakeDraggable(dragPart, targetPart)
     end)
 end
 
--- Premium Animated Stroke (Moving Shine)
+-- الإطار المضيء والمتحرك (تأثير اللمعان)
 local function ApplyAnimatedStroke(parentObj, thickness, cornerRadius)
     local stroke = Instance.new("UIStroke")
     stroke.Thickness = thickness
-    stroke.Color = Color3.new(1, 1, 1) -- Base white to allow gradient to show pure colors
+    stroke.Color = Color3.new(1, 1, 1)
     stroke.Parent = parentObj
     
     local grad = Instance.new("UIGradient")
     grad.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, THEME_ORANGE_DARK),
-        ColorSequenceKeypoint.new(0.5, THEME_ORANGE_LIGHT), -- The "Shine"
+        ColorSequenceKeypoint.new(0.5, THEME_ORANGE_LIGHT),
         ColorSequenceKeypoint.new(1, THEME_ORANGE_DARK)
     })
     grad.Rotation = 45
     grad.Parent = stroke
     
-    -- Infinite Shimmer Animation
     grad.Offset = Vector2.new(-1, -1)
     local tweenInfo = TweenInfo.new(2.5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
     local tween = TweenService:Create(grad, tweenInfo, {Offset = Vector2.new(1, 1)})
@@ -79,7 +78,7 @@ local function ApplyAnimatedStroke(parentObj, thickness, cornerRadius)
     return stroke
 end
 
--- Text Gradient Effect
+-- تأثير التدرج اللوني للنصوص
 local function ApplyTextGradient(textLabel)
     local grad = Instance.new("UIGradient")
     grad.Color = ColorSequence.new({
@@ -101,7 +100,7 @@ function AxisUI.CreateWindow(Options)
     local DescText = Options.Description or "Premium UI"
     local ThemeImage = Options.ThemeImage or "rbxassetid://103845371952278" 
     
-    -- 1. ScreenGui Setup
+    -- 1. إعداد الـ ScreenGui
     self.ScreenGui = Instance.new("ScreenGui")
     self.ScreenGui.Name = "AxisUI_Premium"
     self.ScreenGui.ResetOnSpawn = false
@@ -111,20 +110,21 @@ function AxisUI.CreateWindow(Options)
     if not self.ScreenGui.Parent then pcall(function() self.ScreenGui.Parent = CoreGui end) end
     if not self.ScreenGui.Parent then self.ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") end
 
-    -- 2. MainFrame (Glassmorphism Style)
+    -- 2. النافذة الرئيسية (تأثير الزجاج - Glassmorphism)
     self.MainFrame = Instance.new("Frame")
-    self.MainFrame.Size = UDim2.new(0, 750, 0, 480)
+    self.MainFrame.Size = UDim2.new(0, 0, 0, 0) -- نبدأ بحجم صفر لعمل أنيميشن الدخول
     self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     self.MainFrame.BackgroundColor3 = DARK_GLASS_BG
-    self.MainFrame.BackgroundTransparency = 0.25 -- Glass effect
+    self.MainFrame.BackgroundTransparency = 0.25
     self.MainFrame.BorderSizePixel = 0
     self.MainFrame.ClipsDescendants = true
+    self.MainFrame.Active = true -- منع النقرات من النفاذ للعبة
     self.MainFrame.Parent = self.ScreenGui
 
     ApplyAnimatedStroke(self.MainFrame, 1.5, UDim.new(0, 12))
 
-    -- Subtle moving gradient for the background to make it feel alive
+    -- تدرج لوني خفيف ومتحرك لخلفية النافذة
     local bgGradient = Instance.new("UIGradient")
     bgGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 10, 8)),
@@ -137,14 +137,15 @@ function AxisUI.CreateWindow(Options)
     local bgTween = TweenService:Create(bgGradient, TweenInfo.new(5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation = -30})
     bgTween:Play()
 
-    -- 3. Floating Button (Clipped & Stylish)
+    -- 3. الزر العائم (بعد التصغير)
     self.FloatingBtn = Instance.new("ImageButton")
     self.FloatingBtn.Size = UDim2.new(0, 55, 0, 55)
     self.FloatingBtn.Position = UDim2.new(0.5, -27, 0.1, 0)
     self.FloatingBtn.BackgroundColor3 = DARK_GLASS_BG
     self.FloatingBtn.AutoButtonColor = false
-    self.FloatingBtn.ClipsDescendants = true
+    self.FloatingBtn.ClipsDescendants = true -- إصلاح: منع الصورة من الخروج عن الزر
     self.FloatingBtn.Visible = false
+    self.FloatingBtn.Active = true
     self.FloatingBtn.Parent = self.ScreenGui
 
     ApplyAnimatedStroke(self.FloatingBtn, 2, UDim.new(0, 12))
@@ -155,11 +156,11 @@ function AxisUI.CreateWindow(Options)
     FloatIcon.BackgroundTransparency = 1
     FloatIcon.Image = ThemeImage
     FloatIcon.ScaleType = Enum.ScaleType.Crop
-    FloatIcon.Parent = self.FloatingBtn.ClipsDescendants = true
+    FloatIcon.Parent = self.FloatingBtn -- تم إصلاح الخطأ البرمجي هنا
 
     MakeDraggable(self.FloatingBtn, self.FloatingBtn)
 
-    -- 4. TopBar (Expanded for Prominent Search)
+    -- 4. الشريط العلوي (TopBar)
     self.TopBar = Instance.new("Frame")
     self.TopBar.Size = UDim2.new(1, 0, 0, 65)
     self.TopBar.BackgroundTransparency = 1
@@ -190,9 +191,9 @@ function AxisUI.CreateWindow(Options)
     self.DescLabel.Parent = self.TopBar
     ApplyTextGradient(self.DescLabel)
 
-    -- 5. Search Bar (Relocated & Restyled)
+    -- 5. شريط البحث الفاخر (موقع بارز)
     self.SearchFrame = Instance.new("Frame")
-    self.SearchFrame.Size = UDim2.new(0.45, 0, 0, 36) -- Prominent width
+    self.SearchFrame.Size = UDim2.new(0.45, 0, 0, 36)
     self.SearchFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     self.SearchFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     self.SearchFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
@@ -222,7 +223,7 @@ function AxisUI.CreateWindow(Options)
     self.SearchBox.TextXAlignment = Enum.TextXAlignment.Left
     self.SearchBox.Parent = self.SearchFrame
 
-    -- Window Controls (Minimize, Maximize, Close)
+    -- أزرار التحكم بالنافذة (إغلاق، تكبير، تصغير)
     local function CreateTopIconBtn(name, iconId, posOffset)
         local btn = Instance.new("ImageButton")
         btn.Name = name
@@ -246,7 +247,7 @@ function AxisUI.CreateWindow(Options)
     self.MaxBtn = CreateTopIconBtn("Maximize", "rbxassetid://103845371952278", -75)
     self.MinBtn = CreateTopIconBtn("Minimize", "rbxassetid://78357418744409", -110)
 
-    -- Window Control Logic
+    -- منطق التحكم بالنافذة
     local isMaximized = false
     local normalSize = UDim2.new(0, 750, 0, 480)
     local maxSize = UDim2.new(0, 900, 0, 600)
@@ -285,10 +286,14 @@ function AxisUI.CreateWindow(Options)
     end)
 
     self.CloseBtn.MouseButton1Click:Connect(function()
+        -- أنيميشن اختفاء قبل الإغلاق
+        local t = TweenService:Create(self.MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
+        t:Play()
+        t.Completed:Wait()
         self.ScreenGui:Destroy()
     end)
 
-    -- 6. Dividers & Menu Structures
+    -- 6. الفواصل وقوائم الواجهة
     local TopDivider = Instance.new("Frame")
     TopDivider.Size = UDim2.new(1, 0, 0, 1)
     TopDivider.Position = UDim2.new(0, 0, 0, 65)
@@ -305,13 +310,14 @@ function AxisUI.CreateWindow(Options)
     SidebarDivider.BorderSizePixel = 0
     SidebarDivider.Parent = self.MainFrame
 
-    -- Tabs Menu
+    -- حاوية التبويبات (تمت إضافة ClipsDescendants)
     self.TabsMenu = Instance.new("ScrollingFrame")
     self.TabsMenu.Name = "TabsMenu"
     self.TabsMenu.Size = UDim2.new(0, 180, 1, -65)
     self.TabsMenu.Position = UDim2.new(0, 0, 0, 65)
     self.TabsMenu.BackgroundTransparency = 1
     self.TabsMenu.ScrollBarThickness = 0
+    self.TabsMenu.ClipsDescendants = true
     self.TabsMenu.Parent = self.MainFrame
 
     local TabsLayout = Instance.new("UIListLayout")
@@ -325,7 +331,7 @@ function AxisUI.CreateWindow(Options)
     TabsPadding.PaddingLeft = UDim.new(0, 10)
     TabsPadding.PaddingRight = UDim.new(0, 10)
 
-    -- Elements Menu
+    -- حاوية العناصر (تمت إضافة ClipsDescendants)
     self.ElementsMenu = Instance.new("ScrollingFrame")
     self.ElementsMenu.Name = "ElementsMenu"
     self.ElementsMenu.Size = UDim2.new(1, -181, 1, -65)
@@ -333,12 +339,13 @@ function AxisUI.CreateWindow(Options)
     self.ElementsMenu.BackgroundTransparency = 1
     self.ElementsMenu.ScrollBarThickness = 2
     self.ElementsMenu.ScrollBarImageColor3 = THEME_ORANGE
+    self.ElementsMenu.ClipsDescendants = true
     self.ElementsMenu.Parent = self.MainFrame
 
     local ElementsLayout = Instance.new("UIListLayout")
     ElementsLayout.Parent = self.ElementsMenu
     ElementsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ElementsLayout.Padding = UDim.new(0, 8) -- Clean spacing for created elements
+    ElementsLayout.Padding = UDim.new(0, 8) 
 
     local ElementsPadding = Instance.new("UIPadding")
     ElementsPadding.Parent = self.ElementsMenu
@@ -346,6 +353,9 @@ function AxisUI.CreateWindow(Options)
     ElementsPadding.PaddingBottom = UDim.new(0, 15)
     ElementsPadding.PaddingLeft = UDim.new(0, 15)
     ElementsPadding.PaddingRight = UDim.new(0, 15)
+
+    -- أنيميشن الدخول الأولي للواجهة
+    TweenService:Create(self.MainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = normalSize}):Play()
 
     return self
 end

@@ -114,19 +114,29 @@ function AxisUI.CreateWindow(Options)
 
     ApplyAnimatedStroke(self.MainFrame, Color3.fromRGB(255, 120, 0), Color3.fromRGB(50, 10, 0), 1.5)
 
-    -- 3. الزر العائم (المربع الذي يحتوي الصورة بالكامل)
+        -- 3. الزر العائم (مطور لقص الحواف)
     self.FloatingBtn = Instance.new("ImageButton")
     self.FloatingBtn.Size = UDim2.new(0, 55, 0, 55)
     self.FloatingBtn.Position = UDim2.new(0.5, -27, 0.1, 0)
     self.FloatingBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     self.FloatingBtn.AutoButtonColor = false
-    self.FloatingBtn.ClipsDescendants = true -- لقص الصورة لتناسب الزوايا الدائرية
+    self.FloatingBtn.ClipsDescendants = true -- هذا هو السطر السحري لقص الصورة
     self.FloatingBtn.Visible = false
     self.FloatingBtn.Parent = self.ScreenGui
 
     local FloatCorner = Instance.new("UICorner")
-    FloatCorner.CornerRadius = UDim.new(0, 12)
+    FloatCorner.CornerRadius = UDim.new(0, 12) -- زاوية دائرية احترافية
     FloatCorner.Parent = self.FloatingBtn
+
+    -- الأيقونة (الصورة)
+    local FloatIcon = Instance.new("ImageLabel")
+    FloatIcon.Name = "FloatIcon"
+    FloatIcon.Size = UDim2.new(1, 0, 1, 0) -- تملأ الزر بالكامل
+    FloatIcon.BackgroundTransparency = 1
+    FloatIcon.Image = ThemeImage -- الصورة التي اخترتها
+    FloatIcon.ScaleType = Enum.ScaleType.Crop -- لضبط أبعاد الصورة داخل الزر
+    FloatIcon.Parent = self.FloatingBtn
+
 
     ApplyAnimatedStroke(self.FloatingBtn, Color3.fromRGB(255, 140, 0), Color3.fromRGB(255, 255, 255), 1.5)
     

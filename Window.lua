@@ -5,7 +5,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
--- دالة سحب سلسة واحترافية
+-- دالة سحب احترافية فائقة النعومة
 local function MakeDraggable(topbarobject, object)
     local Dragging = nil
     local DragInput = nil
@@ -15,7 +15,7 @@ local function MakeDraggable(topbarobject, object)
     local function Update(input)
         local Delta = input.Position - DragStart
         local pos = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
-        local Tween = TweenService:Create(object, TweenInfo.new(0.08, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Position = pos})
+        local Tween = TweenService:Create(object, TweenInfo.new(0.06, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Position = pos})
         Tween:Play()
     end
 
@@ -51,7 +51,7 @@ function AxisUI.CreateWindow(Options)
     
     local TitleText = Options.Title or "AxisUI Hub"
     local DescText = Options.Description or "Premium Interface"
-    local ToggleKey = Options.ToggleKey or Enum.KeyCode.RightControl -- زر إظهار/إخفاء القائمة
+    local IconId = Options.Icon or "rbxassetid://15016713781" -- أيقونة افتراضية في حال لم تضع واحدة
     
     -- 1. إعداد ScreenGui
     self.ScreenGui = Instance.new("ScreenGui")
@@ -64,83 +64,72 @@ function AxisUI.CreateWindow(Options)
     if not success then pcall(function() self.ScreenGui.Parent = CoreGui end) end
     if not self.ScreenGui.Parent then self.ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") end
 
-    -- 2. الإطار الرئيسي (Main Frame) - تصميم داكن جداً
+    -- 2. الإطار الرئيسي (Main Frame) - تصميم داكن جداً وصلب (Clean & Sharp)
     self.MainFrame = Instance.new("Frame")
     self.MainFrame.Name = "MainFrame"
-    self.MainFrame.Size = UDim2.new(0, 0, 0, 0) -- يبدأ بصفر من أجل أنيميشن الدخول
+    self.MainFrame.Size = UDim2.new(0, 0, 0, 0) -- للأنيميشن الأولي
     self.MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    self.MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+    self.MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15) -- رمادي/أسود احترافي
     self.MainFrame.BorderSizePixel = 0
-    self.MainFrame.ClipsDescendants = false -- مفعل للظل الخارجي
+    self.MainFrame.ClipsDescendants = true -- مهم جداً لإخفاء المحتوى عند التصغير
     self.MainFrame.Parent = self.ScreenGui
 
+    -- إضافة الـ UICorner بناءً على طلبك
     local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 8)
+    MainCorner.CornerRadius = UDim.new(0, 6) -- حواف دائرية ناعمة جداً وغير مبالغ فيها
     MainCorner.Parent = self.MainFrame
 
-    -- إضافة حدود للنافذة (Stroke)
+    -- إطار نحيف جداً يعطي لمسة فخامة بدون ألوان مزعجة
     local MainStroke = Instance.new("UIStroke")
-    MainStroke.Color = Color3.fromRGB(40, 40, 40)
+    MainStroke.Color = Color3.fromRGB(45, 45, 45)
     MainStroke.Thickness = 1
     MainStroke.Parent = self.MainFrame
-
-    -- الظل الخارجي (Shadow) ليعطي عمق للـ UI
-    local DropShadow = Instance.new("ImageLabel")
-    DropShadow.Name = "DropShadow"
-    DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    DropShadow.Position = UDim2.new(0.5, 0, 0.5, 2)
-    DropShadow.Size = UDim2.new(1, 40, 1, 40)
-    DropShadow.BackgroundTransparency = 1
-    DropShadow.Image = "rbxassetid://1316045217"
-    DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    DropShadow.ImageTransparency = 0.5
-    DropShadow.ZIndex = -1
-    DropShadow.ScaleType = Enum.ScaleType.Slice
-    DropShadow.SliceCenter = Rect.new(10, 10, 118, 118)
-    DropShadow.Parent = self.MainFrame
-
-    -- لمسة نيون علوية (Accent) تناسب طابع Matrix
-    local TopAccent = Instance.new("Frame")
-    TopAccent.Name = "TopAccent"
-    TopAccent.Size = UDim2.new(1, 0, 0, 2)
-    TopAccent.BackgroundColor3 = Color3.fromRGB(0, 255, 255) -- لون سماوي/نيون
-    TopAccent.BorderSizePixel = 0
-    TopAccent.Parent = self.MainFrame
-
-    local AccentCorner = Instance.new("UICorner")
-    AccentCorner.CornerRadius = UDim.new(0, 8)
-    AccentCorner.Parent = TopAccent
-
-    -- إخفاء الزوايا السفلية لخط النيون
-    local AccentHide = Instance.new("Frame")
-    AccentHide.Size = UDim2.new(1, 0, 0, 1)
-    AccentHide.Position = UDim2.new(0, 0, 1, -1)
-    AccentHide.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
-    AccentHide.BorderSizePixel = 0
-    AccentHide.Parent = TopAccent
 
     -- 3. الشريط العلوي (TopBar)
     self.TopBar = Instance.new("Frame")
     self.TopBar.Name = "TopBar"
-    self.TopBar.Size = UDim2.new(1, 0, 0, 50)
-    self.TopBar.BackgroundTransparency = 1
+    self.TopBar.Size = UDim2.new(1, 0, 0, 48)
+    self.TopBar.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+    self.TopBar.BorderSizePixel = 0
     self.TopBar.Parent = self.MainFrame
+
+    -- زوايا للشريط العلوي ليتناسب مع الـ MainFrame
+    local TopBarCorner = Instance.new("UICorner")
+    TopBarCorner.CornerRadius = UDim.new(0, 6)
+    TopBarCorner.Parent = self.TopBar
+
+    -- إخفاء الزوايا السفلية للشريط العلوي ليدمج مع القائمة
+    local TopBarHideCorner = Instance.new("Frame")
+    TopBarHideCorner.Size = UDim2.new(1, 0, 0, 6)
+    TopBarHideCorner.Position = UDim2.new(0, 0, 1, -6)
+    TopBarHideCorner.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+    TopBarHideCorner.BorderSizePixel = 0
+    TopBarHideCorner.Parent = self.TopBar
 
     MakeDraggable(self.TopBar, self.MainFrame)
 
-    -- 4. حاوية النصوص
+    -- 4. أيقونة السكربت (Icon)
+    self.HubIcon = Instance.new("ImageLabel")
+    self.HubIcon.Name = "HubIcon"
+    self.HubIcon.Size = UDim2.new(0, 24, 0, 24)
+    self.HubIcon.Position = UDim2.new(0, 15, 0.5, -12)
+    self.HubIcon.BackgroundTransparency = 1
+    self.HubIcon.Image = IconId
+    self.HubIcon.Parent = self.TopBar
+
+    -- 5. حاوية النصوص (تم تعديل موقعها لتناسب الأيقونة)
     local TextContainer = Instance.new("Frame")
     TextContainer.Name = "TextContainer"
     TextContainer.Size = UDim2.new(0, 300, 1, 0)
-    TextContainer.Position = UDim2.new(0, 20, 0, 0)
+    TextContainer.Position = UDim2.new(0, 48, 0, 0) -- إزاحة لليمين بسبب الأيقونة
     TextContainer.BackgroundTransparency = 1
     TextContainer.Parent = self.TopBar
 
     local UIListLayout_Text = Instance.new("UIListLayout")
     UIListLayout_Text.SortOrder = Enum.SortOrder.LayoutOrder
     UIListLayout_Text.VerticalAlignment = Enum.VerticalAlignment.Center
-    UIListLayout_Text.Padding = UDim.new(0, 2)
+    UIListLayout_Text.Padding = UDim.new(0, 0)
     UIListLayout_Text.Parent = TextContainer
 
     self.TitleLabel = Instance.new("TextLabel")
@@ -148,8 +137,8 @@ function AxisUI.CreateWindow(Options)
     self.TitleLabel.Size = UDim2.new(1, 0, 0, 18)
     self.TitleLabel.BackgroundTransparency = 1
     self.TitleLabel.Text = TitleText
-    self.TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    self.TitleLabel.TextSize = 15
+    self.TitleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+    self.TitleLabel.TextSize = 14
     self.TitleLabel.Font = Enum.Font.GothamBold
     self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.TitleLabel.Parent = TextContainer
@@ -159,13 +148,13 @@ function AxisUI.CreateWindow(Options)
     self.DescLabel.Size = UDim2.new(1, 0, 0, 14)
     self.DescLabel.BackgroundTransparency = 1
     self.DescLabel.Text = DescText
-    self.DescLabel.TextColor3 = Color3.fromRGB(120, 120, 120)
-    self.DescLabel.TextSize = 12
+    self.DescLabel.TextColor3 = Color3.fromRGB(110, 110, 110)
+    self.DescLabel.TextSize = 11
     self.DescLabel.Font = Enum.Font.GothamMedium
     self.DescLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.DescLabel.Parent = TextContainer
 
-    -- 5. حاوية أزرار التحكم (أيقونات)
+    -- 6. أزرار التحكم
     local ControlsContainer = Instance.new("Frame")
     ControlsContainer.Name = "Controls"
     ControlsContainer.Size = UDim2.new(0, 120, 1, 0)
@@ -178,21 +167,21 @@ function AxisUI.CreateWindow(Options)
     ControlsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     ControlsLayout.VerticalAlignment = Enum.VerticalAlignment.Center
     ControlsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ControlsLayout.Padding = UDim.new(0, 12)
+    ControlsLayout.Padding = UDim.new(0, 10)
     ControlsLayout.Parent = ControlsContainer
 
     local ControlsPadding = Instance.new("UIPadding")
     ControlsPadding.PaddingRight = UDim.new(0, 15)
     ControlsPadding.Parent = ControlsContainer
 
-    -- دالة إنشاء الأيقونات (ImageButtons)
+    -- دالة إنشاء الأزرار
     local function CreateIconButton(name, assetId, layoutOrder, hoverColor)
         local Btn = Instance.new("ImageButton")
         Btn.Name = name
-        Btn.Size = UDim2.new(0, 18, 0, 18)
+        Btn.Size = UDim2.new(0, 16, 0, 16)
         Btn.BackgroundTransparency = 1
         Btn.Image = assetId
-        Btn.ImageColor3 = Color3.fromRGB(150, 150, 150)
+        Btn.ImageColor3 = Color3.fromRGB(140, 140, 140)
         Btn.ScaleType = Enum.ScaleType.Fit
         Btn.LayoutOrder = layoutOrder
         Btn.Parent = ControlsContainer
@@ -201,71 +190,67 @@ function AxisUI.CreateWindow(Options)
             TweenService:Create(Btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {ImageColor3 = hoverColor}):Play()
         end)
         Btn.MouseLeave:Connect(function()
-            TweenService:Create(Btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {ImageColor3 = Color3.fromRGB(150, 150, 150)}):Play()
+            TweenService:Create(Btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {ImageColor3 = Color3.fromRGB(140, 140, 140)}):Play()
         end)
 
         return Btn
     end
 
-    -- استخدام الـ IDs التي طلبتها
     self.MinBtn = CreateIconButton("Minimize", "rbxassetid://118026365011536", 1, Color3.fromRGB(255, 255, 255))
     self.MaxBtn = CreateIconButton("Maximize", "rbxassetid://76045941763188", 2, Color3.fromRGB(255, 255, 255))
-    self.CloseBtn = CreateIconButton("Close", "rbxassetid://110786993356448", 3, Color3.fromRGB(255, 75, 75))
+    self.CloseBtn = CreateIconButton("Close", "rbxassetid://110786993356448", 3, Color3.fromRGB(255, 85, 85))
 
-    -- خط فاصل ناعم أسفل الـ TopBar
+    -- خط فاصل ناعم جداً تحت الشريط العلوي (Clean Separator)
     local Separator = Instance.new("Frame")
     Separator.Name = "Separator"
-    Separator.Size = UDim2.new(1, -30, 0, 1)
-    Separator.Position = UDim2.new(0, 15, 1, 0)
-    Separator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Separator.BackgroundTransparency = 0.9
+    Separator.Size = UDim2.new(1, 0, 0, 1)
+    Separator.Position = UDim2.new(0, 0, 1, 0)
+    Separator.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     Separator.BorderSizePixel = 0
     Separator.Parent = self.TopBar
 
     -- =====================================
-    -- 6. الأنيميشن وبرمجة الأزرار (Logic)
+    -- 7. الأنيميشن وبرمجة الأزرار (Logic)
     -- =====================================
 
-    -- أنيميشن الدخول الأولي السلس
-    TweenService:Create(self.MainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = UDim2.new(0, 650, 0, 420)}):Play()
+    -- أنيميشن الدخول الأولي الفخم (Quint Easing)
+    TweenService:Create(self.MainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, 650, 0, 420)}):Play()
 
-    -- نظام زر الـ Minimize (إخفاء بالكامل وليس حذف)
+    -- نظام الـ Minimize الجديد (Roll-up احترافي بدلاً من الاختفاء التام)
+    local isMinimized = false
+    local preMinSize = UDim2.new(0, 650, 0, 420)
+
     self.MinBtn.MouseButton1Click:Connect(function()
-        -- أنيميشن اختفاء ناعم للأسفل
-        local hideTween = TweenService:Create(self.MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
-        hideTween:Play()
-        hideTween.Completed:Wait()
-        self.MainFrame.Visible = false
-        -- إعادة الحجم الحقيقي بعد الإخفاء استعداداً للظهور مجدداً
-        self.MainFrame.Size = UDim2.new(0, 650, 0, 420)
-    end)
-
-    -- نظام استدعاء القائمة إذا كانت مخفية (استخدام الزر للتبديل)
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if not gameProcessed and input.KeyCode == ToggleKey then
-            if not self.MainFrame.Visible then
-                self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
-                self.MainFrame.Visible = true
-                TweenService:Create(self.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 650, 0, 420)}):Play()
-            else
-                local hideTween = TweenService:Create(self.MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
-                hideTween:Play()
-                hideTween.Completed:Wait()
-                self.MainFrame.Visible = false
-                self.MainFrame.Size = UDim2.new(0, 650, 0, 420)
-            end
+        isMinimized = not isMinimized
+        if isMinimized then
+            -- حفظ الحجم الحالي قبل التصغير
+            preMinSize = self.MainFrame.Size
+            -- طي الشاشة لتصبح بحجم الشريط العلوي فقط
+            TweenService:Create(self.MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0, self.MainFrame.Size.X.Offset, 0, 48)}):Play()
+            -- تغيير لون الأيقونة لتوضيح الحالة
+            TweenService:Create(self.MinBtn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(100, 255, 100)}):Play()
+        else
+            -- إرجاع الشاشة لحجمها السابق
+            TweenService:Create(self.MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = preMinSize}):Play()
+            TweenService:Create(self.MinBtn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(140, 140, 140)}):Play()
         end
     end)
 
-    -- نظام الـ Maximize (تكبير/تصغير)
+    -- نظام الـ Maximize
     local isMaximized = false
     self.MaxBtn.MouseButton1Click:Connect(function()
+        if isMinimized then return end -- منع التكبير إذا كانت القائمة مطوية
+        
         isMaximized = not isMaximized
-        local targetSize = isMaximized and UDim2.new(0, 850, 0, 550) or UDim2.new(0, 650, 0, 420)
-        TweenService:Create(self.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = targetSize}):Play()
+        local targetSize = isMaximized and UDim2.new(0, 800, 0, 500) or UDim2.new(0, 650, 0, 420)
+        
+        -- تحديث المتغير حتى يعمل الـ Minimize بشكل صحيح بعد التكبير
+        preMinSize = targetSize 
+        
+        TweenService:Create(self.MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = targetSize}):Play()
     end)
 
-    -- نظام الـ Close (حذف القائمة بالكامل)
+    -- نظام الـ Close (حذف القائمة)
     self.CloseBtn.MouseButton1Click:Connect(function()
         local closeTween = TweenService:Create(self.MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1})
         closeTween:Play()

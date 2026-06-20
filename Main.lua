@@ -1,18 +1,21 @@
--- ملف Main.lua
 local Main = {}
 
--- تعريف روابط المكتبة
-local AXIS_UI_URL = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Window.lua"
-local BUTTON_URL = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Button.lua"
+-- الروابط المحدثة
+local URLS = {
+    Window = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Window.lua",
+    Button = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Button.lua",
+    Tab    = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Tab.lua"
+}
 
--- دالة تحميل المكتبات
 function Main.Load()
-    local AxisUI = loadstring(game:HttpGet(AXIS_UI_URL))()
-    local Button = loadstring(game:HttpGet(BUTTON_URL))()
+    local AxisUI = loadstring(game:HttpGet(URLS.Window))()
+    local ButtonMod = loadstring(game:HttpGet(URLS.Button))()
+    local TabMod = loadstring(game:HttpGet(URLS.Tab))()
     
     return {
         Window = AxisUI,
-        Button = Button
+        Button = ButtonMod,
+        Tab = TabMod
     }
 end
 

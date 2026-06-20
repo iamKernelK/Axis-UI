@@ -1,7 +1,6 @@
 local TweenService = game:GetService("TweenService")
 local TabModule = {}
 
--- الألوان المعتمدة في الستايل الخاص بك
 local THEME_ORANGE = Color3.fromRGB(255, 140, 0)
 local TAB_BG = Color3.fromRGB(20, 15, 12)
 local TAB_HOVER_BG = Color3.fromRGB(30, 20, 15)
@@ -11,9 +10,8 @@ local TEXT_SELECTED = Color3.fromRGB(255, 255, 255)
 
 function TabModule.Create(Window, Options)
     local Name = Options.Name or "Tab"
-    local IconId = Options.Icon -- الأيقونة اختياري
+    local IconId = Options.Icon
     
-    -- فحص ذكي: إذا كانت هذه أول خانة تصنعها، ستفتح تلقائياً
     local isFirstTab = false
     local existingTabs = 0
     for _, v in ipairs(Window.ElementsMenu:GetChildren()) do
@@ -21,9 +19,7 @@ function TabModule.Create(Window, Options)
     end
     if existingTabs == 0 then isFirstTab = true end
 
-    -- =====================================
-    -- 1. الزر الجانبي (في TabsMenu اليسار)
-    -- =====================================
+    -- 1. الزر الجانبي
     local TabButton = Instance.new("TextButton")
     TabButton.Name = Name .. "_TabBtn"
     TabButton.Size = UDim2.new(1, 0, 0, 38)
@@ -31,13 +27,12 @@ function TabModule.Create(Window, Options)
     TabButton.Text = "" 
     TabButton.AutoButtonColor = false
     TabButton.ClipsDescendants = true
-    TabButton.Parent = Window.TabsMenu -- يروح للقائمة اليسرى
+    TabButton.Parent = Window.TabsMenu
 
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(0, 8)
     Corner.Parent = TabButton
     
-    -- خط التحديد البرتقالي يظهر لما تختار الخانة
     local Stroke = Instance.new("UIStroke")
     Stroke.Color = THEME_ORANGE
     Stroke.Thickness = 1
@@ -45,7 +40,6 @@ function TabModule.Create(Window, Options)
     Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     Stroke.Parent = TabButton
 
-    -- إضافة الأيقونة (إذا تم وضعها في الخيارات)
     local TextOffset = 15
     if IconId then
         local Icon = Instance.new("ImageLabel")
@@ -56,10 +50,9 @@ function TabModule.Create(Window, Options)
         Icon.Image = IconId
         Icon.ImageColor3 = isFirstTab and THEME_ORANGE or TEXT_COLOR
         Icon.Parent = TabButton
-        TextOffset = 36 -- إزاحة النص عشان الأيقونة
+        TextOffset = 36
     end
 
-    -- النص (اسم الخانة)
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, -TextOffset, 1, 0)
     Title.Position = UDim2.new(0, TextOffset, 0, 0)
@@ -71,30 +64,33 @@ function TabModule.Create(Window, Options)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = TabButton
 
-    -- =====================================
-    -- 2. حاوية العناصر (في ElementsMenu اليمين)
-    -- =====================================
+    -- 2. حاوية العناصر (Tab Container)
     local TabContainer = Instance.new("ScrollingFrame")
     TabContainer.Name = Name .. "_Container"
     TabContainer.Size = UDim2.new(1, 0, 1, 0)
     TabContainer.BackgroundTransparency = 1
     TabContainer.ScrollBarThickness = 0
-    TabContainer.Visible = isFirstTab -- تظهر فقط إذا كانت الأولى
+    TabContainer.Visible = isFirstTab 
     TabContainer.ClipsDescendants = true
-    TabContainer.Parent = Window.ElementsMenu -- هذا هو المكان اللي ستحط فيه أزرارك
+    TabContainer.Parent = Window.ElementsMenu 
+
+    -- [الحل هنا]: إضافة UIPadding لمنع الأزرار من الالتصاق بالحواف
+    local Padding = Instance.new("UIPadding")
+    Padding.PaddingTop = UDim.new(0, 12)
+    Padding.PaddingBottom = UDim.new(0, 12)
+    Padding.PaddingLeft = UDim.new(0, 12)
+    Padding.PaddingRight = UDim.new(0, 12)
+    Padding.Parent = TabContainer
 
     local Layout = Instance.new("UIListLayout")
     Layout.SortOrder = Enum.SortOrder.LayoutOrder
     Layout.Padding = UDim.new(0, 8)
     Layout.Parent = TabContainer
 
-    -- =====================================
-    -- 3. منطق الأنيميشن والتبديل (Logic)
-    -- =====================================
+    -- 3. منطق الأنيميشن والتبديل
     TabButton.MouseButton1Click:Connect(function()
-        if TabContainer.Visible then return end -- إذا هي مفتوحة أصلاً، لا تسوي شيء
+        if TabContainer.Visible then return end
         
-        -- إخفاء كل الحاويات وإرجاع شكل الأزرار الثانية لوضعها الطبيعي
         for _, child in ipairs(Window.ElementsMenu:GetChildren()) do
             if child:IsA("ScrollingFrame") then child.Visible = false end
         end
@@ -112,7 +108,6 @@ function TabModule.Create(Window, Options)
             end
         end
 
-        -- إظهار الحاوية الجديدة وتشغيل أنيميشن التفعيل
         TabContainer.Visible = true
         TweenService:Create(TabButton, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = TAB_SELECTED_BG}):Play()
         TweenService:Create(Stroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
@@ -122,7 +117,6 @@ function TabModule.Create(Window, Options)
         if currentIcon then TweenService:Create(currentIcon, TweenInfo.new(0.3), {ImageColor3 = THEME_ORANGE}):Play() end
     end)
     
-    -- أنيميشن عند وضع الماوس على الزر
     TabButton.MouseEnter:Connect(function()
         if not TabContainer.Visible then
             TweenService:Create(TabButton, TweenInfo.new(0.2), {BackgroundColor3 = TAB_HOVER_BG}):Play()
@@ -135,9 +129,7 @@ function TabModule.Create(Window, Options)
         end
     end)
 
-    -- نرجع "TabContainer" عشان إذا صنعت زر، ينحط داخلها
     return TabContainer 
 end
 
 return TabModule
-

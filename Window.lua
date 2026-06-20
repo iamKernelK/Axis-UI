@@ -8,8 +8,8 @@ local CoreGui = game:GetService("CoreGui")
 -- ==========================================
 -- ثوابت الألوان (Premium Dark Orange Theme)
 -- ==========================================
-local THEME_ORANGE = Color3.fromRGB(255, 140, 0)
-local THEME_ORANGE_DARK = Color3.fromRGB(180, 80, 0)
+local THEME_ORANGE = Color3.fromRGB(255, 140, 0)       -- برتقالي ساطع
+local THEME_ORANGE_DARK = Color3.fromRGB(180, 80, 0)   -- برتقالي غامق
 local THEME_ORANGE_LIGHT = Color3.fromRGB(255, 180, 80)
 
 -- ==========================================
@@ -59,20 +59,33 @@ local function ApplyGradient(instance)
     return grad
 end
 
--- تدرج لوني للنصوص مع أنيميشن (مثل القديم ولكن أحدث)
-local function ApplyTextGradient(textLabel)
+-- نظام تطبيق التدرج البرتقالي للنصوص (يحل مشكلة اللون الأسود)
+local function ApplyOrangeTextGradient(textObj, animate)
+    -- السر هنا: يجب أن يكون لون النص الأصلي أبيض لكي يظهر التدرج بشكله الحقيقي
+    textObj.TextColor3 = Color3.fromRGB(255, 255, 255) 
+    
+    -- مسح أي تدرج قديم لتجنب التكرار
+    for _, child in ipairs(textObj:GetChildren()) do
+        if child:IsA("UIGradient") then child:Destroy() end
+    end
+
     local grad = Instance.new("UIGradient")
     grad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, THEME_ORANGE_DARK),
-        ColorSequenceKeypoint.new(0.5, THEME_ORANGE_LIGHT),
-        ColorSequenceKeypoint.new(1, THEME_ORANGE_DARK)
+        ColorSequenceKeypoint.new(0, THEME_ORANGE),      -- يبدأ برتقالي
+        ColorSequenceKeypoint.new(1, THEME_ORANGE_DARK)  -- ينتهي برتقالي غامق
     })
     grad.Rotation = 0
-    grad.Parent = textLabel
+    grad.Parent = textObj
     
-    -- أنيميشن لمعة تمشي على الكلمة
-    local tween = TweenService:Create(grad, TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true), {Offset = Vector2.new(1, 0)})
-    tween:Play()
+    -- إضافة حركة لمعان مستمرة إذا كان العنوان الرئيسي
+    if animate then
+        grad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, THEME_ORANGE_DARK),
+            ColorSequenceKeypoint.new(0.5, THEME_ORANGE_LIGHT),
+            ColorSequenceKeypoint.new(1, THEME_ORANGE_DARK)
+        })
+        TweenService:Create(grad, TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true), {Offset = Vector2.new(1, 0)}):Play()
+    end
 end
 
 -- ==========================================
@@ -96,7 +109,7 @@ function AxisUI.CreateWindow(Options)
     if not self.ScreenGui.Parent then pcall(function() self.ScreenGui.Parent = CoreGui end) end
     if not self.ScreenGui.Parent then self.ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") end
 
-    -- 2. النافذة الرئيسية (تم استخدام CanvasGroup لسهولة التحكم في الشفافية الكلية)
+    -- 2. النافذة الرئيسية (CanvasGroup للتحكم الاحترافي بالشفافية الكلية)
     self.MainFrame = Instance.new("CanvasGroup")
     self.MainFrame.Size = UDim2.new(0, 0, 0, 0)
     self.MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -110,11 +123,11 @@ function AxisUI.CreateWindow(Options)
     MainCorner.CornerRadius = UDim.new(0, 10)
     MainCorner.Parent = self.MainFrame
 
-    -- تدرج الخلفية (تأثير التنفس)
+    -- تدرج الخلفية الفخم (يتحرك بهدوء)
     local MainBgGradient = Instance.new("UIGradient")
     MainBgGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(8, 4, 2)),      
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(22, 10, 5)),   
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(20, 9, 4)),   
         ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 4, 2))       
     })
     MainBgGradient.Rotation = 45
@@ -139,7 +152,7 @@ function AxisUI.CreateWindow(Options)
     self.TopBar.Parent = self.MainFrame
     MakeDraggable(self.TopBar, self.MainFrame)
 
-    -- اسم السكربت (التدرج المضاف)
+    -- اسم السكربت (مع لمعة برتقالية متحركة)
     self.TitleLabel = Instance.new("TextLabel")
     self.TitleLabel.Size = UDim2.new(0, 300, 0, 22)
     self.TitleLabel.Position = UDim2.new(0, 20, 0, 12)
@@ -150,19 +163,19 @@ function AxisUI.CreateWindow(Options)
     self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.TitleLabel.ZIndex = 5
     self.TitleLabel.Parent = self.TopBar
-    ApplyTextGradient(self.TitleLabel) -- تطبيق التدرج اللوني للاسم
+    ApplyOrangeTextGradient(self.TitleLabel, true)
 
     self.DescLabel = Instance.new("TextLabel")
     self.DescLabel.Size = UDim2.new(0, 300, 0, 15)
     self.DescLabel.Position = UDim2.new(0, 20, 0, 36)
     self.DescLabel.BackgroundTransparency = 1
     self.DescLabel.Text = DescText
-    self.DescLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
     self.DescLabel.Font = Enum.Font.GothamMedium
     self.DescLabel.TextSize = 12
     self.DescLabel.TextXAlignment = Enum.TextXAlignment.Left
     self.DescLabel.ZIndex = 5
     self.DescLabel.Parent = self.TopBar
+    ApplyOrangeTextGradient(self.DescLabel, false)
 
     -- أزرار التحكم في الـ TopBar
     local function CreateTopIconBtn(name, iconId, posOffset)
@@ -195,7 +208,7 @@ function AxisUI.CreateWindow(Options)
     self.MaxBtn = CreateTopIconBtn("Maximize", "rbxassetid://103845371952278", -75)
     self.MinBtn = CreateTopIconBtn("Minimize", "rbxassetid://78357418744409", -110)
     
-    -- [الزر الجديد]: زر الشفافية (Transparent)
+    -- زر الشفافية الجديد
     self.TransBtn = CreateTopIconBtn("Transparent", "rbxassetid://101356891567422", -145)
 
     -- 4. الحاويات الرئيسية (Tabs & Elements)
@@ -254,6 +267,20 @@ function AxisUI.CreateWindow(Options)
     ElementsPadding.PaddingRight = UDim.new(0, 15)
 
     -- ==========================================
+    -- ⭐ السحر هنا: مراقب النصوص التلقائي ⭐
+    -- ==========================================
+    -- هذا الكود يراقب أي شيء يتم إضافته داخل النافذة (سواء كان Tab أو Button)
+    -- ويقوم بتحويل لون النص إلى التدرج البرتقالي تلقائياً!
+    self.MainFrame.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+            -- نستثني أي عنصر اسمه Icon عشان ما نخرب أيقونات الخطوط
+            if not descendant.Name:lower():match("icon") then
+                ApplyOrangeTextGradient(descendant, false)
+            end
+        end
+    end)
+
+    -- ==========================================
     -- منطق الأزرار العلوية (Controls)
     -- ==========================================
     local isMaximized = false
@@ -265,11 +292,10 @@ function AxisUI.CreateWindow(Options)
         TweenService:Create(self.MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Size = isMaximized and maxSize or normalSize}):Play()
     end)
 
-    -- منطق زر الشفافية
+    -- منطق زر الشفافية (يخلي كل القائمة شفافة بنسبة 50% أو يرجعها طبيعية)
     local isTransparent = false
     self.TransBtn.MouseButton1Click:Connect(function()
         isTransparent = not isTransparent
-        -- استخدام GroupTransparency ليجعل القائمة بأكملها شفافة (نصوص، أزرار، خلفية) بنسبة 50%
         local targetAlpha = isTransparent and 0.5 or 0 
         TweenService:Create(self.MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Sine), {GroupTransparency = targetAlpha}):Play()
         TweenService:Create(self.MainStroke, TweenInfo.new(0.3, Enum.EasingStyle.Sine), {Transparency = targetAlpha}):Play()

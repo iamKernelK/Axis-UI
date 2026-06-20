@@ -1,83 +1,169 @@
 local TweenService = game:GetService("TweenService")
-local DropdownModule = {}
 
 local THEME_ORANGE = Color3.fromRGB(255, 140, 0)
+local ELEMENT_BG = Color3.fromRGB(20, 15, 12)
+local ELEMENT_HOVER = Color3.fromRGB(28, 18, 11)
+local ITEM_BG = Color3.fromRGB(25, 20, 18)
+local TEXT_COLOR = Color3.fromRGB(230, 230, 230)
 
-function DropdownModule.Create(ParentFrame, Options)
-    local DName = Options.Name or "Dropdown"
-    local List = Options.Options or {}
-    local Callback = Options.Callback or function() end
+return {
+    Create = function(Container, Config)
+        local DName = Config.Name or "Dropdown"
+        local OptionsList = Config.Options or {}
+        local MaxSelect = Config.Max or #OptionsList -- الحد الأقصى للاختيارات
+        local Callback = Config.Callback or function() end
+        
+        local Selected = {} -- جدول لحفظ الخيارات المحددة
+        local IsOpen = false
+        local ItemHeight = 30
+        local ClosedHeight = 42
+        local OpenHeight = ClosedHeight + (#OptionsList * ItemHeight) + 10 -- حساب الارتفاع عند الفتح
 
-    local DropdownFrame = Instance.new("Frame")
-    DropdownFrame.Size = UDim2.new(1, 0, 0, 42)
-    DropdownFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 12)
-    DropdownFrame.ClipsDescendants = true
-    DropdownFrame.Parent = ParentFrame
-    Instance.new("UICorner", DropdownFrame).CornerRadius = UDim.new(0, 8)
+        -- 1. الحاوية الأساسية (تتوسع وتنكمش)
+        local DropdownFrame = Instance.new("Frame")
+        DropdownFrame.Name = DName .. "_Dropdown"
+        DropdownFrame.Size = UDim2.new(1, -24, 0, ClosedHeight)
+        DropdownFrame.BackgroundColor3 = ELEMENT_BG
+        DropdownFrame.ClipsDescendants = true -- مهم جداً لإخفاء العناصر عند الإغلاق
+        DropdownFrame.Parent = Container
 
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, -40, 0, 42)
-    Title.Position = UDim2.new(0, 15, 0, 0)
-    Title.BackgroundTransparency = 1
-    Title.Text = DName .. " : ..."
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.Font = Enum.Font.GothamMedium
-    Title.TextSize = 14
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.Parent = DropdownFrame
+        Instance.new("UICorner", DropdownFrame).CornerRadius = UDim.new(0, 5)
 
-    local Icon = Instance.new("ImageLabel")
-    Icon.Size = UDim2.new(0, 20, 0, 20)
-    Icon.Position = UDim2.new(1, -30, 0, 11)
-    Icon.BackgroundTransparency = 1
-    Icon.Image = "rbxassetid://6034818372"
-    Icon.ImageColor3 = THEME_ORANGE
-    Icon.Parent = DropdownFrame
+        local Stroke = Instance.new("UIStroke", DropdownFrame)
+        Stroke.Color = THEME_ORANGE
+        Stroke.Thickness = 1
+        Stroke.Transparency = 0.8
+        Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
-    local OpenBtn = Instance.new("TextButton")
-    OpenBtn.Size = UDim2.new(1, 0, 0, 42)
-    OpenBtn.BackgroundTransparency = 1
-    OpenBtn.Text = ""
-    OpenBtn.Parent = DropdownFrame
+        -- 2. الرأس (Header) - الجزء الذي يظهر دائماً
+        local HeaderBtn = Instance.new("TextButton")
+        HeaderBtn.Size = UDim2.new(1, 0, 0, ClosedHeight)
+        HeaderBtn.BackgroundTransparency = 1
+        HeaderBtn.Text = ""
+        HeaderBtn.Parent = DropdownFrame
 
-    local Container = Instance.new("ScrollingFrame")
-    Container.Size = UDim2.new(1, -20, 0, 100)
-    Container.Position = UDim2.new(0, 10, 0, 45)
-    Container.BackgroundTransparency = 1
-    Container.ScrollBarThickness = 2
-    Container.ScrollBarImageColor3 = THEME_ORANGE
-    Container.Parent = DropdownFrame
-    Instance.new("UIListLayout", Container).Padding = UDim.new(0, 4)
+        local Title = Instance.new("TextLabel")
+        Title.Size = UDim2.new(0.5, 0, 1, 0)
+        Title.Position = UDim2.new(0, 15, 0, 0)
+        Title.BackgroundTransparency = 1
+        Title.Text = DName
+        Title.TextColor3 = TEXT_COLOR
+        Title.Font = Enum.Font.GothamSemibold
+        Title.TextSize = 14
+        Title.TextXAlignment = Enum.TextXAlignment.Left
+        Title.Parent = HeaderBtn
 
-    local IsOpen = false
-    OpenBtn.MouseButton1Click:Connect(function()
-        IsOpen = not IsOpen
-        TweenService:Create(DropdownFrame, TweenInfo.new(0.3), {Size = IsOpen and UDim2.new(1, 0, 0, 150) or UDim2.new(1, 0, 0, 42)}):Play()
-        TweenService:Create(Icon, TweenInfo.new(0.3), {Rotation = IsOpen and 180 or 0}):Play()
-    end)
+        -- نص يوضح الخيارات المحددة
+        local ValueText = Instance.new("TextLabel")
+        ValueText.Size = UDim2.new(0.5, -40, 1, 0)
+        ValueText.Position = UDim2.new(0.5, 5, 0, 0)
+        ValueText.BackgroundTransparency = 1
+        ValueText.Text = "None"
+        ValueText.TextColor3 = THEME_ORANGE
+        ValueText.Font = Enum.Font.GothamMedium
+        ValueText.TextSize = 12
+        ValueText.TextXAlignment = Enum.TextXAlignment.Right
+        ValueText.ClipsDescendants = true
+        ValueText.Parent = HeaderBtn
 
-    for _, opt in ipairs(List) do
-        local OptBtn = Instance.new("TextButton")
-        OptBtn.Size = UDim2.new(1, 0, 0, 30)
-        OptBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 15)
-        OptBtn.Text = "  " .. opt
-        OptBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-        OptBtn.Font = Enum.Font.Gotham
-        OptBtn.TextSize = 13
-        OptBtn.TextXAlignment = Enum.TextXAlignment.Left
-        OptBtn.Parent = Container
-        Instance.new("UICorner", OptBtn).CornerRadius = UDim.new(0, 4)
+        -- أيقونة السهم (تدور عند الفتح)
+        local Arrow = Instance.new("ImageLabel")
+        Arrow.Size = UDim2.new(0, 16, 0, 16)
+        Arrow.Position = UDim2.new(1, -25, 0.5, 0)
+        Arrow.AnchorPoint = Vector2.new(0, 0.5)
+        Arrow.BackgroundTransparency = 1
+        Arrow.Image = "rbxassetid://6031090990" -- أيقونة سهم
+        Arrow.ImageColor3 = THEME_ORANGE
+        Arrow.Parent = HeaderBtn
 
-        OptBtn.MouseButton1Click:Connect(function()
-            Title.Text = DName .. " : " .. opt
-            Callback(opt)
-            IsOpen = false
-            TweenService:Create(DropdownFrame, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 0, 42)}):Play()
-            TweenService:Create(Icon, TweenInfo.new(0.3), {Rotation = 0}):Play()
+        -- 3. حاوية العناصر المنسدلة
+        local ItemsContainer = Instance.new("Frame")
+        ItemsContainer.Size = UDim2.new(1, -20, 1, -ClosedHeight - 10)
+        ItemsContainer.Position = UDim2.new(0, 10, 0, ClosedHeight + 5)
+        ItemsContainer.BackgroundTransparency = 1
+        ItemsContainer.Parent = DropdownFrame
+
+        local ListLayout = Instance.new("UIListLayout", ItemsContainer)
+        ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        ListLayout.Padding = UDim.new(0, 4)
+
+        -- دالة لتحديث النص في الرأس (Header)
+        local function UpdateValueText()
+            if #Selected == 0 then
+                ValueText.Text = "None"
+            elseif #Selected == #OptionsList then
+                ValueText.Text = "All"
+            else
+                ValueText.Text = table.concat(Selected, ", ")
+            end
+        end
+
+        -- 4. إنشاء الخيارات
+        for i, option in ipairs(OptionsList) do
+            local ItemBtn = Instance.new("TextButton")
+            ItemBtn.Size = UDim2.new(1, 0, 0, ItemHeight)
+            ItemBtn.BackgroundColor3 = ITEM_BG
+            ItemBtn.Text = ""
+            ItemBtn.Parent = ItemsContainer
+            Instance.new("UICorner", ItemBtn).CornerRadius = UDim.new(0, 5)
+
+            local ItemText = Instance.new("TextLabel")
+            ItemText.Size = UDim2.new(1, -30, 1, 0)
+            ItemText.Position = UDim2.new(0, 10, 0, 0)
+            ItemText.BackgroundTransparency = 1
+            ItemText.Text = option
+            ItemText.TextColor3 = TEXT_COLOR
+            ItemText.Font = Enum.Font.GothamMedium
+            ItemText.TextSize = 13
+            ItemText.TextXAlignment = Enum.TextXAlignment.Left
+            ItemText.Parent = ItemBtn
+
+            -- العلامة (Indicator) تظهر عند التحديد
+            local Indicator = Instance.new("Frame")
+            Indicator.Size = UDim2.new(0, 4, 0, 16)
+            Indicator.Position = UDim2.new(1, -10, 0.5, 0)
+            Indicator.AnchorPoint = Vector2.new(1, 0.5)
+            Indicator.BackgroundColor3 = THEME_ORANGE
+            Indicator.BackgroundTransparency = 1 -- مخفي في البداية
+            Indicator.Parent = ItemBtn
+            Instance.new("UICorner", Indicator).CornerRadius = UDim.new(1, 0)
+
+            local isSelected = false
+
+            ItemBtn.MouseButton1Click:Connect(function()
+                if isSelected then
+                    -- إزالة التحديد
+                    isSelected = false
+                    for idx, val in ipairs(Selected) do
+                        if val == option then table.remove(Selected, idx) break end
+                    end
+                    TweenService:Create(Indicator, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+                    TweenService:Create(ItemText, TweenInfo.new(0.2), {TextColor3 = TEXT_COLOR}):Play()
+                else
+                    -- إضافة التحديد (مع التحقق من الحد الأقصى)
+                    if #Selected < MaxSelect then
+                        isSelected = true
+                        table.insert(Selected, option)
+                        TweenService:Create(Indicator, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
+                        TweenService:Create(ItemText, TweenInfo.new(0.2), {TextColor3 = THEME_ORANGE}):Play()
+                    end
+                end
+                UpdateValueText()
+                Callback(Selected)
+            end)
+        end
+
+        -- تفاعل الفتح والإغلاق
+        HeaderBtn.MouseButton1Click:Connect(function()
+            IsOpen = not IsOpen
+            local targetHeight = IsOpen and OpenHeight or ClosedHeight
+            local targetRot = IsOpen and 180 or 0
+
+            TweenService:Create(DropdownFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, -24, 0, targetHeight)}):Play()
+            TweenService:Create(Arrow, TweenInfo.new(0.3), {Rotation = targetRot}):Play()
+            TweenService:Create(Stroke, TweenInfo.new(0.3), {Transparency = IsOpen and 0.2 or 0.8}):Play()
         end)
+
+        return DropdownFrame
     end
-
-    return DropdownFrame
-end
-
-return DropdownModule
+}

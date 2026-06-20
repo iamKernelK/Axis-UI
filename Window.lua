@@ -142,17 +142,28 @@ function AxisUI.CreateWindow(Options)
     TitleGrad.Rotation = 0
     TitleGrad.Parent = self.TitleLabel
 
-    self.DescLabel = Instance.new("TextLabel")
-    self.DescLabel.Size = UDim2.new(0, 200, 0, 15)
-    self.DescLabel.Position = UDim2.new(0, 20, 0, 36)
-    self.DescLabel.BackgroundTransparency = 1
-    self.DescLabel.Text = DescText
-    self.DescLabel.TextColor3 = Color3.fromRGB(130, 130, 130)
-    self.DescLabel.Font = Enum.Font.GothamMedium
-    self.DescLabel.TextSize = 12
-    self.DescLabel.TextXAlignment = Enum.TextXAlignment.Left
-    self.DescLabel.ZIndex = 5
-    self.DescLabel.Parent = self.TopBar
+    -- بدلاً من الكود القديم للـ DescLabel، ضع هذا:
+self.DescLabel = Instance.new("TextLabel")
+self.DescLabel.Size = UDim2.new(0, 200, 0, 15)
+self.DescLabel.Position = UDim2.new(0, 20, 0, 36)
+self.DescLabel.BackgroundTransparency = 1
+self.DescLabel.Text = DescText
+self.DescLabel.TextColor3 = Color3.new(1, 1, 1) -- يجب أن يكون أبيض ليظهر التدرج
+self.DescLabel.Font = Enum.Font.GothamMedium
+self.DescLabel.TextSize = 12
+self.DescLabel.TextXAlignment = Enum.TextXAlignment.Left
+self.DescLabel.ZIndex = 5
+self.DescLabel.Parent = self.TopBar
+
+-- إضافة التدرج للـ Description
+local DescGrad = Instance.new("UIGradient")
+DescGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, THEME_ORANGE),
+    ColorSequenceKeypoint.new(1, THEME_ORANGE_DARK)
+})
+DescGrad.Rotation = 0
+DescGrad.Parent = self.DescLabel
+    
 
     local function CreateTopIconBtn(name, iconId, posOffset)
         local btn = Instance.new("ImageButton")

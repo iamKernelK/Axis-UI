@@ -1,52 +1,57 @@
--- Keybind Component
 local UserInputService = game:GetService("UserInputService")
+local KeybindModule = {}
+
 local THEME_ORANGE = Color3.fromRGB(255, 140, 0)
 
-return function(TabContainer, Options)
-    local BindName = Options.Name or "Keybind"
-    local CurrentBind = Options.Default or Enum.KeyCode.E
+function KeybindModule.Create(ParentFrame, Options)
+    local Name = Options.Name or "Keybind"
+    local CurrentKey = Options.Default or Enum.KeyCode.E
     local Callback = Options.Callback or function() end
 
-    local BindFrame = Instance.new("Frame")
-    BindFrame.Size = UDim2.new(1, 0, 0, 42)
-    BindFrame.BackgroundColor3 = Color3.fromRGB(15, 10, 8)
-    BindFrame.Parent = TabContainer
-    Instance.new("UICorner", BindFrame).CornerRadius = UDim.new(0, 8)
+    local KeyFrame = Instance.new("Frame")
+    KeyFrame.Size = UDim2.new(1, 0, 0, 42)
+    KeyFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 12)
+    KeyFrame.Parent = ParentFrame
+    Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 8)
 
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -100, 1, 0)
-    Label.Position = UDim2.new(0, 15, 0, 0)
-    Label.BackgroundTransparency = 1
-    Label.Text = BindName
-    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Label.Font = Enum.Font.GothamMedium
-    Label.TextSize = 14
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Parent = BindFrame
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -100, 1, 0)
+    Title.Position = UDim2.new(0, 15, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = Name
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Font = Enum.Font.GothamMedium
+    Title.TextSize = 14
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = KeyFrame
 
-    local BindBtn = Instance.new("TextButton")
-    BindBtn.Size = UDim2.new(0, 80, 0, 26)
-    BindBtn.Position = UDim2.new(1, -95, 0.5, -13)
-    BindBtn.BackgroundColor3 = Color3.fromRGB(25, 18, 15)
-    BindBtn.Text = CurrentBind.Name
-    BindBtn.TextColor3 = THEME_ORANGE
-    BindBtn.Font = Enum.Font.GothamBold
-    BindBtn.TextSize = 12
-    BindBtn.Parent = BindFrame
-    Instance.new("UICorner", BindBtn).CornerRadius = UDim.new(0, 6)
+    local KeyBtn = Instance.new("TextButton")
+    KeyBtn.Size = UDim2.new(0, 70, 0, 26)
+    KeyBtn.Position = UDim2.new(1, -85, 0.5, -13)
+    KeyBtn.BackgroundColor3 = Color3.fromRGB(35, 25, 20)
+    KeyBtn.Text = CurrentKey.Name
+    KeyBtn.TextColor3 = THEME_ORANGE
+    KeyBtn.Font = Enum.Font.GothamBold
+    KeyBtn.TextSize = 12
+    KeyBtn.Parent = KeyFrame
+    Instance.new("UICorner", KeyBtn).CornerRadius = UDim.new(0, 4)
 
     local Listening = false
-    BindBtn.MouseButton1Click:Connect(function()
+    KeyBtn.MouseButton1Click:Connect(function()
         Listening = true
-        BindBtn.Text = "..."
+        KeyBtn.Text = "..."
     end)
 
     UserInputService.InputBegan:Connect(function(input)
         if Listening and input.UserInputType == Enum.UserInputType.Keyboard then
-            CurrentBind = input.KeyCode
-            BindBtn.Text = CurrentBind.Name
+            CurrentKey = input.KeyCode
+            KeyBtn.Text = CurrentKey.Name
             Listening = false
-            Callback(CurrentBind)
+            Callback(CurrentKey)
         end
     end)
+
+    return KeyFrame
 end
+
+return KeybindModule

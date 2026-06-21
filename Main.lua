@@ -1,5 +1,6 @@
-Local Main = {}
+local AxisUI = {}
 
+-- قائمة الروابط
 local URLS = {
     Window   = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Window.lua",
     Tab      = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Tab.lua",
@@ -9,35 +10,31 @@ local URLS = {
     Section  = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Section.lua",
     Dropdown = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Dropdown.lua",
     Keybind  = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Keybind.lua",
-    Gradient = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/WindowGradient.lua",
-    Slider   = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Slider.lua" -- تم إضافة الرابط هنا
+    Slider   = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Slider.lua"
 }
 
-function Main.Load()
-    -- تحميل الموديولات الأساسية والمطورة
-    local WindowMod   = loadstring(game:HttpGet(URLS.Window))()
-    local TabMod      = loadstring(game:HttpGet(URLS.Tab))()
-    local ButtonMod   = loadstring(game:HttpGet(URLS.Button))()
-    local ToggleMod   = loadstring(game:HttpGet(URLS.Toggle))()
-    local TextboxMod  = loadstring(game:HttpGet(URLS.Textbox))()
-    local SectionMod  = loadstring(game:HttpGet(URLS.Section))()
-    local DropdownMod = loadstring(game:HttpGet(URLS.Dropdown))()
-    local KeybindMod  = loadstring(game:HttpGet(URLS.Keybind))()
-    local GradientMod = loadstring(game:HttpGet(URLS.Gradient))()
-    local SliderMod   = loadstring(game:HttpGet(URLS.Slider))() -- تم تحميل الموديول هنا
-    
-    return {
-        Window   = WindowMod,
-        Tab      = TabMod,
-        Button   = ButtonMod,
-        Toggle   = ToggleMod,
-        Textbox  = TextboxMod,
-        Section  = SectionMod,
-        Dropdown = DropdownMod,
-        Keybind  = KeybindMod,
-        Gradient = GradientMod,
-        Slider   = SliderMod -- تم إضافة الموديول للجدول المرجع
-    }
+-- دالة أمان لجلب الموديولات
+local function LoadModule(url)
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+    if success then
+        return result
+    else
+        warn("AxisUI Error: Failed to load module -> " .. url)
+        return nil -- يعيد nil بدلاً من التوقف عن العمل
+    end
 end
 
-return Main
+-- تحميل الموديولات
+AxisUI.Window   = LoadModule(URLS.Window)
+AxisUI.Tab      = LoadModule(URLS.Tab)
+AxisUI.Button   = LoadModule(URLS.Button)
+AxisUI.Toggle   = LoadModule(URLS.Toggle)
+AxisUI.Textbox  = LoadModule(URLS.Textbox)
+AxisUI.Section  = LoadModule(URLS.Section)
+AxisUI.Dropdown = LoadModule(URLS.Dropdown)
+AxisUI.Keybind  = LoadModule(URLS.Keybind)
+AxisUI.Slider   = LoadModule(URLS.Slider)
+
+return AxisUI

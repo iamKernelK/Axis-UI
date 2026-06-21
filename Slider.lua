@@ -1,4 +1,4 @@
-local Slider = {} -- بداية الموديول الصحيحة
+local Slider = {} 
 
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -10,13 +10,12 @@ function Slider.Create(Tab, Options)
     local Min = Options.Min or 0
     local Max = Options.Max or 100
     local Default = Options.Default or Min
-    local LeftIconID = Options.LeftIcon
-    local RightIconID = Options.RightIcon
     local Callback = Options.Callback or function() end
 
-    -- الألوان الاحترافية (أسود، أبيض، وسماوي نيون)
-    local THEME_CYAN = Color3.fromRGB(0, 255, 255) -- سماوي نيون
-    local BUBBLE_COLOR = Color3.fromRGB(15, 15, 15) -- أسود غامق للفقاعة
+    -- ألوان الستايل الخاصة بكم (أسود، أبيض، سماوي نيون)
+    local THEME_CYAN = Color3.fromRGB(0, 255, 255) 
+    local BG_BLACK = Color3.fromRGB(15, 15, 15) 
+    local TRACK_BLACK = Color3.fromRGB(25, 25, 25)
     local TEXT_WHITE = Color3.fromRGB(255, 255, 255)
 
     -- 1. الحاوية الأساسية للـ Slider
@@ -44,39 +43,17 @@ function Slider.Create(Tab, Options)
     ValueDisplay.TextSize = 13
     ValueDisplay.TextXAlignment = Enum.TextXAlignment.Right
 
-    -- 2. منطقة التحريك والأيقونات
+    -- 2. منطقة التحريك
     local TrackArea = Instance.new("Frame", SliderContainer)
     TrackArea.Size = UDim2.new(1, -10, 0, 20)
     TrackArea.Position = UDim2.new(0, 5, 0, 25)
     TrackArea.BackgroundTransparency = 1
 
-    local TrackPadding = 0
-    if LeftIconID then
-        local LeftIcon = Instance.new("ImageLabel", TrackArea)
-        LeftIcon.Size = UDim2.new(0, 16, 0, 16)
-        LeftIcon.Position = UDim2.new(0, 0, 0.5, -8)
-        LeftIcon.BackgroundTransparency = 1
-        LeftIcon.Image = LeftIconID
-        LeftIcon.ImageColor3 = Color3.fromRGB(180, 180, 180)
-        TrackPadding = TrackPadding + 25
-    end
-
-    local RightPadding = 0
-    if RightIconID then
-        local RightIcon = Instance.new("ImageLabel", TrackArea)
-        RightIcon.Size = UDim2.new(0, 16, 0, 16)
-        RightIcon.Position = UDim2.new(1, -16, 0.5, -8)
-        RightIcon.BackgroundTransparency = 1
-        RightIcon.Image = RightIconID
-        RightIcon.ImageColor3 = Color3.fromRGB(180, 180, 180)
-        RightPadding = 25
-    end
-
-    -- 3. مسار الـ Slider (Track & Fill)
+    -- 3. مسار الـ Slider
     local Track = Instance.new("Frame", TrackArea)
-    Track.Size = UDim2.new(1, -(TrackPadding + RightPadding), 0, 4)
-    Track.Position = UDim2.new(0, TrackPadding, 0.5, -2)
-    Track.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Track.Size = UDim2.new(1, 0, 0, 4)
+    Track.Position = UDim2.new(0, 0, 0.5, -2)
+    Track.BackgroundColor3 = TRACK_BLACK
     Instance.new("UICorner", Track).CornerRadius = UDim.new(1, 0)
 
     local Fill = Instance.new("Frame", Track)
@@ -84,37 +61,32 @@ function Slider.Create(Tab, Options)
     Fill.BackgroundColor3 = THEME_CYAN
     Instance.new("UICorner", Fill).CornerRadius = UDim.new(1, 0)
 
-    -- 4. المقبض (Knob)
-    local Knob = Instance.new("ImageLabel", Track)
-    Knob.Size = UDim2.new(0, 22, 0, 22)
-    Knob.Position = UDim2.new((Default - Min) / (Max - Min), 0, 0.5, 0)
-    Knob.AnchorPoint = Vector2.new(0.5, 0.5)
-    Knob.BackgroundTransparency = 1
-    Knob.Image = "rbxassetid://105854070513330" 
-    Knob.ImageColor3 = TEXT_WHITE
+    -- 4. المقبض (Thumb) - التسمية الصحيحة والـ ID المطلوب
+    local Thumb = Instance.new("ImageLabel", Track)
+    Thumb.Size = UDim2.new(0, 22, 0, 22)
+    Thumb.Position = UDim2.new((Default - Min) / (Max - Min), 0, 0.5, 0)
+    Thumb.AnchorPoint = Vector2.new(0.5, 0.5)
+    Thumb.BackgroundTransparency = 1
+    Thumb.Image = "rbxassetid://125083578015333" 
+    Thumb.ImageColor3 = TEXT_WHITE
 
-    -- 5. الـ Chat Bubble والـ Arrow
-    local Bubble = Instance.new("Frame", Knob)
+    -- 5. الـ Bubble والـ Arrow
+    local Bubble = Instance.new("Frame", Thumb)
     Bubble.Size = UDim2.new(0, 36, 0, 24)
     Bubble.Position = UDim2.new(0.5, 0, 0, -10)
     Bubble.AnchorPoint = Vector2.new(0.5, 1)
-    Bubble.BackgroundColor3 = BUBBLE_COLOR
+    Bubble.BackgroundColor3 = BG_BLACK
     Bubble.BackgroundTransparency = 1 
     Instance.new("UICorner", Bubble).CornerRadius = UDim.new(0, 6)
-    
-    -- إضافة حدود للفقاعة لتبرز أكثر
-    local BubbleStroke = Instance.new("UIStroke", Bubble)
-    BubbleStroke.Color = Color3.fromRGB(40, 40, 40)
-    BubbleStroke.Thickness = 1
-    BubbleStroke.Transparency = 1
 
+    -- السهم (Arrow) في وسط الـ Bubble من الأسفل
     local Arrow = Instance.new("ImageLabel", Bubble)
-    Arrow.Size = UDim2.new(0, 12, 0, 6)
-    Arrow.Position = UDim2.new(0.5, 0, 1, 0)
+    Arrow.Size = UDim2.new(0, 10, 0, 5) -- حجم صغير ومناسب
+    Arrow.Position = UDim2.new(0.5, 0, 1, 0) -- الموقع في أسفل الفقاعة
     Arrow.AnchorPoint = Vector2.new(0.5, 0)
     Arrow.BackgroundTransparency = 1
-    Arrow.Image = "rbxassetid://125083578015333" 
-    Arrow.ImageColor3 = BUBBLE_COLOR
+    Arrow.Image = "rbxassetid://105854070513330" -- الـ ID الذي ذكرته للسهم
+    Arrow.ImageColor3 = BG_BLACK
     Arrow.ImageTransparency = 1
 
     local BubbleText = Instance.new("TextLabel", Bubble)
@@ -126,7 +98,7 @@ function Slider.Create(Tab, Options)
     BubbleText.TextSize = 11
     BubbleText.TextTransparency = 1
 
-    -- 6. المنطق والأنيميشن (Lerp & 40% Speed Effect)
+    -- 6. المنطق والأنيميشن
     local Dragging = false
     local TargetPct = (Default - Min) / (Max - Min)
     local CurrentPct = TargetPct
@@ -135,22 +107,26 @@ function Slider.Create(Tab, Options)
     local function ToggleBubble(visible)
         local targetAlpha = visible and 0 or 1
         local targetY = visible and -28 or -10 
+        -- شفافية الـ Thumb عند التحريك (يصبح شفاف بالكامل عند السحب)
+        local thumbTransparency = visible and 1 or 0 
         local easeStyle = visible and Enum.EasingStyle.Back or Enum.EasingStyle.Sine
         
+        -- تحريك الفقاعة وإظهارها
         TweenService:Create(Bubble, TweenInfo.new(0.3, easeStyle, Enum.EasingDirection.Out), {
             Position = UDim2.new(0.5, 0, 0, targetY),
             BackgroundTransparency = targetAlpha
         }):Play()
-        TweenService:Create(BubbleStroke, TweenInfo.new(0.3), {Transparency = targetAlpha}):Play()
         TweenService:Create(Arrow, TweenInfo.new(0.2), {ImageTransparency = targetAlpha}):Play()
         TweenService:Create(BubbleText, TweenInfo.new(0.2), {TextTransparency = targetAlpha}):Play()
+        
+        -- أنيميشن الـ Thumb (الشفافية)
+        TweenService:Create(Thumb, TweenInfo.new(0.2), {ImageTransparency = thumbTransparency}):Play()
     end
 
-    Knob.InputBegan:Connect(function(input)
+    Thumb.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             Dragging = true
             ToggleBubble(true)
-            TweenService:Create(Knob, TweenInfo.new(0.2), {Size = UDim2.new(0, 26, 0, 26)}):Play()
         end
     end)
 
@@ -159,7 +135,6 @@ function Slider.Create(Tab, Options)
             if Dragging then
                 Dragging = false
                 ToggleBubble(false)
-                TweenService:Create(Knob, TweenInfo.new(0.2), {Size = UDim2.new(0, 22, 0, 22)}):Play()
             end
         end
     end)
@@ -174,7 +149,7 @@ function Slider.Create(Tab, Options)
         
         if math.abs(TargetPct - CurrentPct) < 0.001 then CurrentPct = TargetPct end
 
-        Knob.Position = UDim2.new(CurrentPct, 0, 0.5, 0)
+        Thumb.Position = UDim2.new(CurrentPct, 0, 0.5, 0)
         Fill.Size = UDim2.new(CurrentPct, 0, 1, 0)
 
         local val = math.floor(Min + (CurrentPct * (Max - Min)))
@@ -189,4 +164,4 @@ function Slider.Create(Tab, Options)
     return SliderContainer
 end
 
-return Slider -- أهم سطر لإرجاع الموديول
+return Slider

@@ -22,4 +22,7 @@ AxisUI.Dropdown = SafeLoad("https://raw.githubusercontent.com/iamKernelK/Axis-UI
 AxisUI.Keybind  = SafeLoad("https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Keybind.lua")
 AxisUI.Slider   = SafeLoad("https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Slider.lua")
 
+-- إضافة الموديول الجديد
+AxisUI.TabSection = SafeLoad("https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Tab%20Section.lua")
+
 return AxisUI

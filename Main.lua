@@ -1,4 +1,4 @@
-local Main = {}
+Local Main = {}
 
 local URLS = {
     Window   = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Window.lua",
@@ -8,8 +8,9 @@ local URLS = {
     Textbox  = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Textbox.lua",
     Section  = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Section.lua",
     Dropdown = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Dropdown.lua",
-    Keybind  = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Keybind.lua", -- تأكد من رفع ملف Keybind على الرابط
-    Gradient = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/WindowGradient.lua"
+    Keybind  = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Keybind.lua",
+    Gradient = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/WindowGradient.lua",
+    Slider   = "https://raw.githubusercontent.com/iamKernelK/Axis-UI/refs/heads/main/Slider.lua" -- تم إضافة الرابط هنا
 }
 
 function Main.Load()
@@ -23,6 +24,7 @@ function Main.Load()
     local DropdownMod = loadstring(game:HttpGet(URLS.Dropdown))()
     local KeybindMod  = loadstring(game:HttpGet(URLS.Keybind))()
     local GradientMod = loadstring(game:HttpGet(URLS.Gradient))()
+    local SliderMod   = loadstring(game:HttpGet(URLS.Slider))() -- تم تحميل الموديول هنا
     
     return {
         Window   = WindowMod,
@@ -33,7 +35,8 @@ function Main.Load()
         Section  = SectionMod,
         Dropdown = DropdownMod,
         Keybind  = KeybindMod,
-        Gradient = GradientMod
+        Gradient = GradientMod,
+        Slider   = SliderMod -- تم إضافة الموديول للجدول المرجع
     }
 end
 

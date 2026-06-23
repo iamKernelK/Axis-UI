@@ -3,33 +3,35 @@ local TweenService = game:GetService("TweenService")
 
 function TabSection.Create(Parent, Options)
     local Name = Options.Name or "Section"
-    local IsOpen = Options.Default or false
+    -- 🔴 إجبار الخانة على أن تكون مغلقة في البداية ما لم تطلب أنت غير ذلك
+    local IsOpen = Options.Default or false 
+    
     local BaseHeight = 35 
-    local ARROW_ICON = "rbxassetid://10137265036" -- أيقونة سهم عصرية متوافقة مع الفيديو
+    -- أيقونة سهم واضحة (سهم يمين كلاسيكي)
+    local ARROW_ICON = "rbxassetid://6031090990" 
     
-    -- 1. الحاوية الأساسية (شفافة تماماً، دورها فقط ترتيب الهيدر والأزرار تحته)
-    local MainContainer = Instance.new("Frame", Parent)
-    MainContainer.Name = Name .. "_Section"
-    MainContainer.Size = UDim2.new(1, 0, 0, 0)
-    MainContainer.BackgroundTransparency = 1
-    MainContainer.AutomaticSize = Enum.AutomaticSize.Y
+    -- 1. الإطار الرئيسي الذي يجمع الهيدر والأزرار (حجمه يتطابق 100% مع الباقي)
+    local SectionFrame = Instance.new("Frame", Parent)
+    SectionFrame.Name = Name .. "_Section"
+    SectionFrame.Size = UDim2.new(1, 0, 0, BaseHeight)
+    SectionFrame.BackgroundTransparency = 1
+    SectionFrame.AutomaticSize = Enum.AutomaticSize.Y
     
-    local MainLayout = Instance.new("UIListLayout", MainContainer)
-    MainLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    MainLayout.Padding = UDim.new(0, 4) -- المسافة بين الهيدر والأزرار التي ستظهر
+    local SectionLayout = Instance.new("UIListLayout", SectionFrame)
+    SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    SectionLayout.Padding = UDim.new(0, 4) -- المسافة بين الهيدر والأزرار تحته
 
-    -- 2. زر الهيدر (المكان الذي تضغط عليه)
-    local HeaderBtn = Instance.new("TextButton", MainContainer)
-    HeaderBtn.Size = UDim2.new(1, -10, 0, BaseHeight)
-    HeaderBtn.Position = UDim2.new(0, 5, 0, 0)
-    HeaderBtn.BackgroundColor3 = Color3.fromRGB(22, 20, 20) -- لون أنيق مطابق لستايل القائمة
-    HeaderBtn.AutoButtonColor = false -- أوقفنا اللون الافتراضي لنصنع تأثير التموج الخاص بنا
+    -- 2. زر الهيدر (نفس الحجم بالضبط)
+    local HeaderBtn = Instance.new("TextButton", SectionFrame)
+    HeaderBtn.Size = UDim2.new(1, 0, 0, BaseHeight)
+    HeaderBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    HeaderBtn.AutoButtonColor = false
     HeaderBtn.Text = ""
-    HeaderBtn.ClipsDescendants = true -- 🌟 السر لكي لا تخرج الدائرة (التموج) خارج الزر
+    HeaderBtn.ClipsDescendants = true -- لضمان بقاء الدائرة داخل الزر
     Instance.new("UICorner", HeaderBtn).CornerRadius = UDim.new(0, 6)
     
     local Stroke = Instance.new("UIStroke", HeaderBtn)
-    Stroke.Color = Color3.fromRGB(45, 40, 40)
+    Stroke.Color = Color3.fromRGB(45, 45, 45)
     Stroke.Thickness = 1
 
     local Title = Instance.new("TextLabel", HeaderBtn)
@@ -47,70 +49,63 @@ function TabSection.Create(Parent, Options)
     Arrow.Position = UDim2.new(1, -25, 0.5, -7)
     Arrow.BackgroundTransparency = 1
     Arrow.Image = ARROW_ICON
-    Arrow.ImageColor3 = Color3.fromRGB(180, 180, 180)
-    Arrow.Rotation = IsOpen and 180 or -90 -- حركة سهم احترافية (من اليمين للأسفل)
+    Arrow.ImageColor3 = Color3.fromRGB(200, 200, 200)
+    -- ضبط اتجاه السهم عند البداية (0 = يمين، 90 = أسفل)
+    Arrow.Rotation = IsOpen and 90 or 0
 
-    -- 3. حاوية الأزرار الوهمية (لا يوجد لها Gui مرئي، مجرد مكان لتجميع الأزرار)
-    local ContentContainer = Instance.new("Frame", MainContainer)
-    ContentContainer.Size = UDim2.new(1, -10, 0, 0)
-    ContentContainer.Position = UDim2.new(0, 5, 0, 0)
-    ContentContainer.BackgroundTransparency = 1 -- مخفية تماماً!
-    ContentContainer.AutomaticSize = Enum.AutomaticSize.Y
-    ContentContainer.Visible = IsOpen
+    -- 3. حاوية العناصر المخفية
+    local ItemsContainer = Instance.new("Frame", SectionFrame)
+    ItemsContainer.Size = UDim2.new(1, 0, 0, 0)
+    ItemsContainer.BackgroundTransparency = 1
+    ItemsContainer.AutomaticSize = Enum.AutomaticSize.Y
+    -- 🔴 إغلاق العناصر من بداية السكربت تماماً
+    ItemsContainer.Visible = IsOpen
     
-    local ContentLayout = Instance.new("UIListLayout", ContentContainer)
-    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ContentLayout.Padding = UDim.new(0, 4)
-    ContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    local ItemsLayout = Instance.new("UIListLayout", ItemsContainer)
+    ItemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ItemsLayout.Padding = UDim.new(0, 4)
+    ItemsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
     -- ==========================================
-    -- 🌟 تأثير التموج (Ripple Effect) عند الضغط
+    -- 🌟 تأثير التموج (Ripple) عند الضغط
     -- ==========================================
     HeaderBtn.MouseButton1Down:Connect(function()
-        -- جلب مكان الماوس بدقة داخل الزر
         local Mouse = game.Players.LocalPlayer:GetMouse()
         local X = Mouse.X - HeaderBtn.AbsolutePosition.X
         local Y = Mouse.Y - HeaderBtn.AbsolutePosition.Y
         
-        -- إنشاء الدائرة
         local Ripple = Instance.new("Frame", HeaderBtn)
-        Ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- لون الدائرة (أبيض شفاف لستايل نظيف)
-        Ripple.BackgroundTransparency = 0.7
+        Ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Ripple.BackgroundTransparency = 0.8
         Ripple.Position = UDim2.new(0, X, 0, Y)
         Ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-        Ripple.Size = UDim2.new(0, 0, 0, 0)
         Instance.new("UICorner", Ripple).CornerRadius = UDim.new(1, 0)
         
-        -- حساب أقصى حجم تحتاجه الدائرة لتغطي الزر بالكامل
         local targetSize = math.max(HeaderBtn.AbsoluteSize.X, HeaderBtn.AbsoluteSize.Y) * 2.5
         
-        -- تشغيل أنيميشن التموج والاختفاء
-        local Tween = TweenService:Create(Ripple, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+        TweenService:Create(Ripple, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, targetSize, 0, targetSize),
             BackgroundTransparency = 1
-        })
-        Tween:Play()
+        }):Play()
         
-        -- حذف الدائرة بعد انتهاء الأنيميشن لتنظيف اللعبة
-        task.delay(0.45, function()
-            Ripple:Destroy()
-        end)
+        -- مسح الدائرة لتخفيف اللاج
+        game.Debris:AddItem(Ripple, 0.5)
     end)
 
     -- ==========================================
-    -- 🔄 تفاعل الفتح والإغلاق (دوران السهم وإظهار الأزرار)
+    -- 🔄 تفاعل الفتح والإغلاق وأنيميشن السهم
     -- ==========================================
     HeaderBtn.MouseButton1Click:Connect(function()
         IsOpen = not IsOpen
-        ContentContainer.Visible = IsOpen
+        ItemsContainer.Visible = IsOpen
         
-        -- دوران السهم بسلاسة
+        -- أنيميشن السهم ليلف للأسفل عند الفتح ويرجع لليمين عند الإغلاق
         TweenService:Create(Arrow, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Rotation = IsOpen and 180 or -90
+            Rotation = IsOpen and 90 or 0
         }):Play()
     end)
 
-    return ContentContainer
+    return ItemsContainer
 end
 
 return TabSection

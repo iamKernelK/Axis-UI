@@ -3,109 +3,108 @@ local TweenService = game:GetService("TweenService")
 
 function TabSection.Create(Parent, Options)
     local Name = Options.Name or "Section"
-    -- 🔴 إجبار الخانة على أن تكون مغلقة في البداية ما لم تطلب أنت غير ذلك
+    local Type = Options.Type or "Element" -- "Element" أو "Tab"
     local IsOpen = Options.Default or false 
     
+    local ARROW_ICON = "rbxassetid://134243273101015"
     local BaseHeight = 35 
-    -- أيقونة سهم واضحة (سهم يمين كلاسيكي)
-    local ARROW_ICON = "rbxassetid://6031090990" 
     
-    -- 1. الإطار الرئيسي الذي يجمع الهيدر والأزرار (حجمه يتطابق 100% مع الباقي)
-    local SectionFrame = Instance.new("Frame", Parent)
-    SectionFrame.Name = Name .. "_Section"
-    SectionFrame.Size = UDim2.new(1, 0, 0, BaseHeight)
-    SectionFrame.BackgroundTransparency = 1
-    SectionFrame.AutomaticSize = Enum.AutomaticSize.Y
+    -- 1. الحاوية الأساسية
+    local MainFrame = Instance.new("Frame", Parent)
+    MainFrame.Size = UDim2.new(1, (Type == "Tab" and -10 or 0), 0, BaseHeight)
+    MainFrame.ClipsDescendants = true 
     
-    local SectionLayout = Instance.new("UIListLayout", SectionFrame)
-    SectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    SectionLayout.Padding = UDim.new(0, 4) -- المسافة بين الهيدر والأزرار تحته
+    if Type == "Element" then
+        MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) 
+        MainFrame.BackgroundTransparency = 0
+        Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 6)
+    else
+        MainFrame.BackgroundTransparency = 1 
+    end
 
-    -- 2. زر الهيدر (نفس الحجم بالضبط)
-    local HeaderBtn = Instance.new("TextButton", SectionFrame)
+    -- 2. زر الهيدر
+    local HeaderBtn = Instance.new("TextButton", MainFrame)
     HeaderBtn.Size = UDim2.new(1, 0, 0, BaseHeight)
-    HeaderBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    HeaderBtn.AutoButtonColor = false
-    HeaderBtn.Text = ""
-    HeaderBtn.ClipsDescendants = true -- لضمان بقاء الدائرة داخل الزر
-    Instance.new("UICorner", HeaderBtn).CornerRadius = UDim.new(0, 6)
-    
-    local Stroke = Instance.new("UIStroke", HeaderBtn)
-    Stroke.Color = Color3.fromRGB(45, 45, 45)
-    Stroke.Thickness = 1
+    HeaderBtn.BackgroundTransparency = 1
+    HeaderBtn.Text = "" 
 
     local Title = Instance.new("TextLabel", HeaderBtn)
     Title.Size = UDim2.new(1, -40, 1, 0)
-    Title.Position = UDim2.new(0, 12, 0, 0)
+    Title.Position = UDim2.new(0, (Type == "Tab" and 5 or 10), 0, 0)
     Title.BackgroundTransparency = 1
     Title.Text = Name
-    Title.TextColor3 = Color3.fromRGB(240, 240, 240)
+    Title.TextColor3 = Color3.fromRGB(220, 220, 220)
     Title.Font = Enum.Font.GothamMedium
     Title.TextSize = 13
     Title.TextXAlignment = Enum.TextXAlignment.Left
 
+    -- 3. أيقونة السهم
     local Arrow = Instance.new("ImageLabel", HeaderBtn)
     Arrow.Size = UDim2.new(0, 14, 0, 14)
     Arrow.Position = UDim2.new(1, -25, 0.5, -7)
     Arrow.BackgroundTransparency = 1
     Arrow.Image = ARROW_ICON
-    Arrow.ImageColor3 = Color3.fromRGB(200, 200, 200)
-    -- ضبط اتجاه السهم عند البداية (0 = يمين، 90 = أسفل)
-    Arrow.Rotation = IsOpen and 90 or 0
+    Arrow.ImageColor3 = Color3.fromRGB(150, 150, 150)
+    Arrow.Rotation = IsOpen and 180 or 0 
 
-    -- 3. حاوية العناصر المخفية
-    local ItemsContainer = Instance.new("Frame", SectionFrame)
-    ItemsContainer.Size = UDim2.new(1, 0, 0, 0)
-    ItemsContainer.BackgroundTransparency = 1
-    ItemsContainer.AutomaticSize = Enum.AutomaticSize.Y
-    -- 🔴 إغلاق العناصر من بداية السكربت تماماً
-    ItemsContainer.Visible = IsOpen
-    
-    local ItemsLayout = Instance.new("UIListLayout", ItemsContainer)
-    ItemsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ItemsLayout.Padding = UDim.new(0, 4)
-    ItemsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    -- 4. حاوية المحتوى
+    local ContentContainer = Instance.new("Frame", MainFrame)
+    ContentContainer.Size = UDim2.new(1, 0, 1, -BaseHeight)
+    ContentContainer.Position = UDim2.new(0, 0, 0, BaseHeight)
+    ContentContainer.BackgroundTransparency = 1
 
-    -- ==========================================
-    -- 🌟 تأثير التموج (Ripple) عند الضغط
-    -- ==========================================
-    HeaderBtn.MouseButton1Down:Connect(function()
-        local Mouse = game.Players.LocalPlayer:GetMouse()
-        local X = Mouse.X - HeaderBtn.AbsolutePosition.X
-        local Y = Mouse.Y - HeaderBtn.AbsolutePosition.Y
-        
-        local Ripple = Instance.new("Frame", HeaderBtn)
-        Ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        Ripple.BackgroundTransparency = 0.8
-        Ripple.Position = UDim2.new(0, X, 0, Y)
-        Ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-        Instance.new("UICorner", Ripple).CornerRadius = UDim.new(1, 0)
-        
-        local targetSize = math.max(HeaderBtn.AbsoluteSize.X, HeaderBtn.AbsoluteSize.Y) * 2.5
-        
-        TweenService:Create(Ripple, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, targetSize, 0, targetSize),
-            BackgroundTransparency = 1
+    local ListLayout = Instance.new("UIListLayout", ContentContainer)
+    ListLayout.Padding = UDim.new(0, 5)
+    ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    if Type == "Element" then
+        ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    end
+
+    -- 🌟 [هذا هو الحل السحري اللي يمنع الأزرار من الاختراق ويشيل السواد]
+    local Padding = Instance.new("UIPadding", ContentContainer)
+    Padding.PaddingTop = UDim.new(0, 8)
+    Padding.PaddingBottom = UDim.new(0, 8)
+    if Type == "Tab" then
+        Padding.PaddingLeft = UDim.new(0, 15)
+    end
+
+    -- 5. نظام الأنيميشن الأصلي (نزول سلس وبدون أخطاء)
+    local function UpdateSize()
+        local TargetHeight = BaseHeight
+        if IsOpen then
+            -- حساب الطول: الزر + الأزرار الداخلية + مسافة البادينغ العلوية والسفلية (16)
+            TargetHeight = BaseHeight + ListLayout.AbsoluteContentSize.Y + 16
+        end
+
+        TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Size = UDim2.new(1, (Type == "Tab" and -10 or 0), 0, TargetHeight)
+        }):Play()
+
+        TweenService:Create(Arrow, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {
+            Rotation = IsOpen and 180 or 0
         }):Play()
         
-        -- مسح الدائرة لتخفيف اللاج
-        game.Debris:AddItem(Ripple, 0.5)
-    end)
+        -- إضاءة خفيفة للنص عند الفتح (أبيض نقي بدل السمائي)
+        TweenService:Create(Title, TweenInfo.new(0.2), {
+            TextColor3 = IsOpen and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(220, 220, 220)
+        }):Play()
+    end
 
-    -- ==========================================
-    -- 🔄 تفاعل الفتح والإغلاق وأنيميشن السهم
-    -- ==========================================
     HeaderBtn.MouseButton1Click:Connect(function()
         IsOpen = not IsOpen
-        ItemsContainer.Visible = IsOpen
-        
-        -- أنيميشن السهم ليلف للأسفل عند الفتح ويرجع لليمين عند الإغلاق
-        TweenService:Create(Arrow, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Rotation = IsOpen and 90 or 0
-        }):Play()
+        UpdateSize()
     end)
 
-    return ItemsContainer
+    ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        if IsOpen then
+            UpdateSize()
+        end
+    end)
+    
+    -- لضمان تحديث الحجم فوراً لو كانت الخانة Default = true
+    if IsOpen then UpdateSize() end
+
+    return ContentContainer 
 end
 
 return TabSection

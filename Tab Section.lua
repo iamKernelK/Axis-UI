@@ -1,119 +1,115 @@
 local TweenService = game:GetService("TweenService")
-
 local SectionModule = {}
 
--- ألوان AxisUI
-local THEME_ORANGE = Color3.fromRGB(255, 140, 0)
-local HEADER_BG = Color3.fromRGB(20, 15, 12)
-local HEADER_HOVER_BG = Color3.fromRGB(28, 18, 11)
+-- ==========================================
+-- 🎨 ألوان هادئة واحترافية (بدون نيون أو بهرجة)
+-- ==========================================
+local THEME = {
+    ContainerBg    = Color3.fromRGB(25, 25, 25), -- خلفية السيكشن وهو مفتوح
+    HeaderBg       = Color3.fromRGB(30, 30, 30), -- خلفية الزر
+    HeaderHover    = Color3.fromRGB(38, 38, 38), -- لون الزر عند مرور الماوس
+    Text           = Color3.fromRGB(240, 240, 240), -- أبيض هادئ
+    Icon           = Color3.fromRGB(170, 170, 170)  -- رمادي فاتح للسهم
+}
 
 function SectionModule.Create(ParentFrame, SectionName)
     local isExpanded = false
-    local headerHeight = 40
+    local headerHeight = 32 -- حجم أنحف وأكثر احترافية
     
-    -- 1. الحاوية الرئيسية للسيكشن (تتمدد وتتقلص)
-    local SectionContainer = Instance.new("Frame")
-    SectionContainer.Name = SectionName .. "_Section"
-    SectionContainer.Size = UDim2.new(1, 0, 0, headerHeight)
-    SectionContainer.BackgroundTransparency = 1
-    SectionContainer.ClipsDescendants = true -- ضروري جداً لإخفاء العناصر عند الإغلاق
-    SectionContainer.Parent = ParentFrame
+    -- 1. الحاوية الرئيسية
+    local Container = Instance.new("Frame")
+    Container.Name = SectionName .. "_Section"
+    Container.Size = UDim2.new(1, 0, 0, headerHeight)
+    Container.BackgroundColor3 = THEME.ContainerBg
+    Container.ClipsDescendants = true 
+    Container.Parent = ParentFrame
     
-    -- 2. زر الهيدر (الرأس اللي تضغط عليه)
+    Instance.new("UICorner", Container).CornerRadius = UDim.new(0, 5)
+
+    -- 2. زر الهيدر
     local HeaderBtn = Instance.new("TextButton")
     HeaderBtn.Size = UDim2.new(1, 0, 0, headerHeight)
-    HeaderBtn.BackgroundColor3 = HEADER_BG
+    HeaderBtn.BackgroundColor3 = THEME.HeaderBg
     HeaderBtn.AutoButtonColor = false
     HeaderBtn.Text = ""
-    HeaderBtn.ZIndex = 2
-    HeaderBtn.Parent = SectionContainer
+    HeaderBtn.Parent = Container
     
-    local HeaderCorner = Instance.new("UICorner")
-    HeaderCorner.CornerRadius = UDim.new(0, 6)
-    HeaderCorner.Parent = HeaderBtn
-    
-    local HeaderStroke = Instance.new("UIStroke")
-    HeaderStroke.Color = THEME_ORANGE
-    HeaderStroke.Thickness = 1
-    HeaderStroke.Transparency = 0.7
-    HeaderStroke.Parent = HeaderBtn
+    Instance.new("UICorner", HeaderBtn).CornerRadius = UDim.new(0, 5)
 
     -- 3. نص السيكشن
     local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, -50, 1, 0)
-    Title.Position = UDim2.new(0, 15, 0, 0)
+    Title.Size = UDim2.new(1, -40, 1, 0)
+    Title.Position = UDim2.new(0, 12, 0, 0)
     Title.BackgroundTransparency = 1
     Title.Text = SectionName
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 14
+    Title.TextColor3 = THEME.Text
+    Title.Font = Enum.Font.GothamMedium
+    Title.TextSize = 13
     Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.ZIndex = 3
     Title.Parent = HeaderBtn
 
-    -- 4. السهم (يتجه لليمين بالوضع الطبيعي)
+    -- 4. السهم (أيقونة نظيفة وبسيطة)
     local Arrow = Instance.new("ImageLabel")
-    Arrow.Size = UDim2.new(0, 16, 0, 16)
-    Arrow.Position = UDim2.new(1, -15, 0.5, 0)
-    Arrow.AnchorPoint = Vector2.new(1, 0.5)
+    Arrow.Size = UDim2.new(0, 14, 0, 14)
+    Arrow.Position = UDim2.new(1, -24, 0.5, -7)
     Arrow.BackgroundTransparency = 1
-    Arrow.Image = "rbxassetid://10392248278" 
-    Arrow.ImageColor3 = THEME_ORANGE
-    Arrow.Rotation = 0 -- يشير لليمين
-    Arrow.ZIndex = 3
+    Arrow.Image = "rbxassetid://10392248278" -- أيقونة سهم أنيقة
+    Arrow.ImageColor3 = THEME.Icon
+    Arrow.Rotation = 0 
     Arrow.Parent = HeaderBtn
 
-    -- 5. حاوية العناصر (التي ستحتوي على الأزرار وغيرها)
+    -- 5. حاوية العناصر المخفية
     local ContentFrame = Instance.new("Frame")
     ContentFrame.Size = UDim2.new(1, 0, 0, 0)
-    ContentFrame.Position = UDim2.new(0, 0, 0, headerHeight + 5) -- تبدأ تحت الهيدر مباشرة مع مسافة بسيطة
+    ContentFrame.Position = UDim2.new(0, 0, 0, headerHeight) 
     ContentFrame.BackgroundTransparency = 1
-    ContentFrame.Parent = SectionContainer
+    ContentFrame.Parent = Container
     
-    -- منظم العناصر داخل السيكشن
     local UIListLayout = Instance.new("UIListLayout")
-    UIListLayout.Padding = UDim.new(0, 8)
+    UIListLayout.Padding = UDim.new(0, 4) -- مسافة صغيرة بين الأزرار
     UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     UIListLayout.Parent = ContentFrame
+
+    local UIPadding = Instance.new("UIPadding")
+    UIPadding.PaddingTop = UDim.new(0, 6)
+    UIPadding.PaddingBottom = UDim.new(0, 6)
+    UIPadding.Parent = ContentFrame
     
     -- ==========================================
-    -- ⚡ الأنيميشن والتفاعلات
+    -- ⚡ تفاعلات سريعة جداً (Snappy Animations)
     -- ==========================================
     
-    -- تأثير الماوس
     HeaderBtn.MouseEnter:Connect(function()
-        TweenService:Create(HeaderBtn, TweenInfo.new(0.2), {BackgroundColor3 = HEADER_HOVER_BG}):Play()
+        TweenService:Create(HeaderBtn, TweenInfo.new(0.15), {BackgroundColor3 = THEME.HeaderHover}):Play()
     end)
     
     HeaderBtn.MouseLeave:Connect(function()
-        TweenService:Create(HeaderBtn, TweenInfo.new(0.3), {BackgroundColor3 = HEADER_BG}):Play()
+        TweenService:Create(HeaderBtn, TweenInfo.new(0.15), {BackgroundColor3 = THEME.HeaderBg}):Play()
     end)
     
-    -- وظيفة الفتح والإغلاق
     HeaderBtn.MouseButton1Click:Connect(function()
         isExpanded = not isExpanded
         
-        -- أنيميشن السهم (0 لليمين، 90 للأسفل)
-        local arrowRot = isExpanded and 90 or 0
-        TweenService:Create(Arrow, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Rotation = arrowRot}):Play()
+        -- سهم سريع (0.2 ثانية)
+        TweenService:Create(Arrow, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Rotation = isExpanded and 90 or 0
+        }):Play()
         
-        -- حساب الارتفاع المطلوب
-        local contentHeight = UIListLayout.AbsoluteContentSize.Y
-        local targetHeight = isExpanded and (headerHeight + contentHeight + 10) or headerHeight
+        local targetHeight = isExpanded and (headerHeight + UIListLayout.AbsoluteContentSize.Y + 12) or headerHeight
         
-        -- أنيميشن فتح/إغلاق الحاوية بسرعة وسلاسة
-        TweenService:Create(SectionContainer, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, targetHeight)}):Play()
+        -- فتح/إغلاق سريع وسلس بدون ارتداد بطيء (0.25 ثانية)
+        TweenService:Create(Container, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(1, 0, 0, targetHeight)
+        }):Play()
     end)
     
-    -- تحديث الارتفاع تلقائياً إذا أضفنا أزرار جديدة والسيكشن مفتوح
     UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         if isExpanded then
-            local newHeight = headerHeight + UIListLayout.AbsoluteContentSize.Y + 10
-            SectionContainer.Size = UDim2.new(1, 0, 0, newHeight)
+            Container.Size = UDim2.new(1, 0, 0, headerHeight + UIListLayout.AbsoluteContentSize.Y + 12)
         end
     end)
     
-    -- إرجاع ContentFrame لكي نضع بداخله الأزرار
     return ContentFrame
 end
 
